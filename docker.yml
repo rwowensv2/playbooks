@@ -3,7 +3,7 @@
 - name: docker
   become_user: root
   become_method: sudo
-  become: yes
+  become: no
   hosts: vbox01
 
   vars_files:
@@ -15,20 +15,14 @@
   tasks:
     - name: install prereqs
       yum:
-        name: "{{ item }}"
+        name: ['device-mapper-persistent-data', 'lvm2']
         state: present
-      with_items:
-        - device-mapper-persistent-data
-        - lvm2
     
     - name: install repo
       command: 'yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo'
 
     - name: install docker
       yum:
-        name: "{{ items }}"
+        name: ['docker-ce', 'docker-ce-cli', 'containerd.io']
         state: present
-      with_items:
-        - docker-ce
-        - docker-ce-cli
-        - containerd.io
+
