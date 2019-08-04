@@ -1,0 +1,166 @@
+---
+- name: common
+  hosts: centvbox.owens.dev
+  become: yes
+  become_method: su
+  become_user: root
+
+  vars_files:
+    - ~/vault.yaml
+
+  vars:
+ # create vars for lua and haproxy packages, urls, etc.
+    - ansible_ssh_user: "{{ me }}"
+ #   - ansible_become_pass: "{{ root_remote }}"
+
+  tasks:
+  - name: patch
+    yum:
+      name: '*'
+      state: latest
+      exclude: kernel*
+    tags: update
+
+  - name: common packages
+    yum:
+      name: ['git.x86_64', 'unzip', 'net-tools', 'yum-utils', 'device-mapper-persistent-data', 'lvm2', 'bind-utils']
+      state: present
+  
+  - name: docker remove old
+    yum: 
+      name: ['docker-client', 'docker-client-latest', 'docker-common', 'docker-latest', 'docker-latest-logrotate', 'docker-logrotate', 'docker-engine']
+      state: absent
+
+  - name: add docker repo
+    shell: "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
+
+  - name: docker packages
+    yum: 
+      name: ['docker-ce', 'docker-ce-cli', 'containerd.io']
+      state: present
+
+  - name: enable docker
+    systemd:
+      name: "{{ item }}"
+      enabled: yes
+      state: started
+    with_items:
+      - docker
+      - docker.socket
+
+  - name: enable firewalld
+    systemd:
+      name: firewalld
+      enabled: yes
+      state: started
+   
+  - name: terraform
+    unarchive:
+      src: https://releases.hashicorp.com/terraform/0.12.5/terraform_0.12.5_linux_amd64.zip 
+      dest: /usr/local/bin
+      remote_src: yes
+    tags: ['never', 'terraform']
+
+# HA Proxy
+#
+  - name: haproxy deps
+    yum:
+      name: ['gcc', 'openssl-devel', 'readline-devel', 'systemd-devel', 'make', 'pcre-devel']
+      state: present
+    tags: ['never', 'haproxy']
+
+  - name: haproxy lua source
+    get_url:
+      url: https://www.lua.org/ftp/lua-5.3.5.tar.gz
+      dest: /usr/local/src/lua-5.3.5.tar.gz
+    tags: ['never', 'haproxy']
+
+  - name: haproxy source
+    get_url:
+      url: http://www.haproxy.org/download/2.0/src/haproxy-2.0.3.tar.gz
+      dest: /usr/local/src/haproxy-2.0.3.tar.gz
+    tags: ['never', 'haproxy']
+
+  - name: haproxy lua extract
+    unarchive:
+      src: /usr/local/src/{{ item }}
+      dest: /usr/local/src
+      remote_src: yes
+    with_items:
+      - haproxy-2.0.3.tar.gz 
+      - lua-5.3.5.tar.gz
+    tags: ['never', 'haproxy']
+
+  - name: haproxy build lua
+    shell: "make INSTALL_TOP=/opt/lua-5.3.5 linux install"
+    args:
+      chdir: /usr/local/src/lua-5.3.5
+    tags: ['never', 'haproxy']
+
+  - name: haproxy build haproxy
+    copy:
+      src: ./files/haproxy.build
+      dest: /usr/local/src/haproxy-2.0.3
+      mode: 0755
+    tags: ['never', 'haproxy']
+  - shell: "/bin/bash haproxy.build"
+    args:
+      chdir: /usr/local/src/haproxy-2.0.3
+    tags: ['never', 'haproxy']
+  - shell: "make help"
+    args:
+      chdir: /usr/local/src/haproxy-2.0.3
+    tags: ['never', 'haproxy']
+  - shell: "make PREFIX=/opt/haproxy install"
+    args:
+      chdir: /usr/local/src/haproxy-2.0.3
+    tags: ['never', 'haproxy']
+
+  - name: haproxy user
+    group:
+      name: haproxy
+      gid: 188
+      state: present
+    tags: ['never', 'haproxy']
+  - user:
+      name: haproxy
+      comment: haproxy
+      uid: 188
+      group: haproxy
+      shell: /sbin/nologin
+      home: /var/lib/haproxy
+    tags: ['never', 'haproxy']
+  
+  - name: haproxy sysconfig
+    copy:
+      src: ./files/haproxy.sysconfig
+      dest: /etc/sysconfig/haproxy
+    tags: ['never', 'haproxy']
+
+  - name: haproxy config
+    file:
+      path: /etc/haproxy
+      owner: haproxy
+      group: haproxy
+      mode: 0755
+      state: directory
+    tags: ['never', 'haproxy']
+  - copy:
+      src: ./files/haproxy.conf
+      dest: /etc/haproxy/haproxy.conf
+    tags: ['never', 'haproxy']
+      
+  - name: haproxy systemd
+    copy:
+      src: haproxy.service
+      dest: /etc/systemd/system/haproxy.service
+    tags: ['never', 'haproxy']
+  - systemd:
+       name: haproxy
+       enabled: yes
+       state: stopped
+    tags: ['never', 'haproxy']
+
+
+
+
