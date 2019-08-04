@@ -26,3 +26,16 @@
         name: ['docker-ce', 'docker-ce-cli', 'containerd.io']
         state: present
 
+    - name: firewall overlay
+      firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled
+      with_items:
+        - 2377/tcp
+        - 7946/tcp
+        - 7946/udp
+        - 4789/udp
+      tags: ['never', 'swarm']
+        
+
