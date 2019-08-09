@@ -26,6 +26,8 @@
       name: ['git.x86_64', 'unzip', 'net-tools', 'yum-utils', 'device-mapper-persistent-data', 'lvm2', 'bind-utils']
       state: present
   
+  # GO
+  #
   - name: get go
     get_url:
       url: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
@@ -46,6 +48,9 @@
     with_items:
       - /root/.bash_profile
     tags: ['never', 'go', 'etcd']
+
+  # Docker
+  #
     
   - name: docker remove old
     yum: 
