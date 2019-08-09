@@ -1,6 +1,6 @@
 ---
 - name: common
-  hosts: centvbox.owens.dev
+  hosts: vbox01
   become: yes
   become_method: su
   become_user: root
@@ -26,6 +26,27 @@
       name: ['git.x86_64', 'unzip', 'net-tools', 'yum-utils', 'device-mapper-persistent-data', 'lvm2', 'bind-utils']
       state: present
   
+  - name: get go
+    get_url:
+      url: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
+      dest: /usr/local/src
+    tags: ['never', 'go', 'etcd']
+
+  - name: install go
+    command: "tar -C /usr/local -xzf /usr/local/src/go1.12.7.linux-amd64.tar.gz"
+    tags: ['never', 'go', 'etcd']
+
+  - name: path go
+    lineinfile:
+      path: "{{ item }}"
+      backrefs: yes
+      regexp: '^export PATH=?'
+      line: 'export PATH=$PATH:/usr/local/go/bin'
+      state: present
+    with_items:
+      - /root/.bash_profile
+    tags: ['never', 'go', 'etcd']
+    
   - name: docker remove old
     yum: 
       name: ['docker-client', 'docker-client-latest', 'docker-common', 'docker-latest', 'docker-latest-logrotate', 'docker-logrotate', 'docker-engine']

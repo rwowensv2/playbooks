@@ -1,0 +1,67 @@
+--- 
+- name: etcd install
+  hosts: vbox01
+  become: yes
+  become_method: su
+  become_user: root
+  gather_facts: no
+
+  vars_files:
+    - ~/vault.yaml
+  
+  vars:
+    ansible_ssh_user: "{{ me }}"
+    ETCD_VER: v3.3.13
+    GOOGLE_URL: https://storage.googleapis.com/etcd
+    GITHUB_URL: https://github.com/etcd-io/etcd/releases/download
+    DOWNLOAD_URL: "{{ GOOGLE_URL }}"
+
+  tasks:
+  - name: get go
+    get_url:
+      url: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
+      dest: /usr/local/src
+    tags: ['never', 'go']
+
+  - name: install go
+    command: "tar -C /usr/local -xzf /usr/local/src/go1.12.7.linux-amd64.tar.gz"
+    tags: ['never', 'go']
+
+  - name: path go
+    lineinfile:
+      path: "{{ item }}"
+      backrefs: yes
+      regexp: '^export PATH=?'
+      line: 'export PATH=$PATH:/usr/local/go/bin'
+      state: present
+    with_items:
+      - /root/.bash_profile
+    tags: ['never', 'go']
+
+  - name: unarchive etcd
+    unarchive:
+      src: "{{ DOWNLOAD_URL }}/{{ ETCD_VER }}/etcd-{{ ETCD_VER }}-linux-amd64.tar.gz"
+      dest: /usr/local/bin
+      remote_src: yes
+      extra_opts:
+      - --strip-components=1
+  - file: 
+      path: /usr/local/bin/etcd-download-test
+      state: absent
+      
+  - name: test etcd
+    shell: "/usr/local/bin/etcd --version"
+    register: etcd
+    tags: test
+  - debug:
+      var: etcd.stdout_lines
+    tags: test
+
+  - name: test etcdctl
+    shell: "/usr/local/bin/etcdctl version"
+    register: etcdctl
+    tags: test
+  - debug:
+      var: etcdctl.stdout_lines
+    tags: etcd
+  
