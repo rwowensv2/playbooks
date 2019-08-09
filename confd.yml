@@ -1,0 +1,38 @@
+---
+# https://github.com/kelseyhightower/confd/blob/master/docs/installation.md
+# https://gist.github.com/warmfusion/b91dd15badcf37d072b8180feb740e91
+- name: confd 
+  hosts: vbox01
+  become: yes
+  become_user: root
+  become_method: su
+  gather_facts: no
+
+  vars_files:
+    - ~/vault.yml
+
+  vars:
+    - ansible_ssh_user: "{{ me }}"
+  
+  tasks:
+  - name: rmold confd
+    file:
+      path: /usr/local/bin/confd
+      state: absent
+
+  - name: get confd
+    get_url:
+      url: https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64
+      dest: /usr/local/bin/confd
+      owner: root
+      group: root
+      mode: 0755
+  
+  - name: test confd
+    command: "/usr/local/bin/confd --version"
+    register: confd
+    tags: confdtest
+  - debug:
+      var: confd.stdout_lines
+    tags: confdtest
+

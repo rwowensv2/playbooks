@@ -4,6 +4,7 @@
   become: yes
   become_method: su
   become_user: root
+  gather_facts: no
 
   vars_files:
     - ~/vault.yaml
@@ -107,7 +108,6 @@
       mode: 0755
     tags: ['never', 'kube']
 
-
 # HA Proxy
 #
   - name: haproxy deps
@@ -208,6 +208,54 @@
        state: stopped
     tags: ['never', 'haproxy']
 
+# Confd
+# 
+  - name: confd
+    get_url:
+      url: https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64
+      dest: /usr/local/bin/confd
+      owner: root
+      group: root
+      mode: 0755
+    tags: ['never', 'confd']
 
+  - name: test confd
+    shell: "/usr/local/bin/confd --version"
+    register: confd
+    tags: ['never', 'confd', 'confdtest']
+  - debug:
+      var: confd.stdout_lines
+    tags: ['never', 'confd', 'confdtest']
+
+# Etcd
+#
+  - name: unarchive etcd
+    unarchive:
+      src: "{{ DOWNLOAD_URL }}/{{ ETCD_VER }}/etcd-{{ ETCD_VER }}-linux-amd64.tar.gz"
+      dest: /usr/local/bin
+      remote_src: yes
+      extra_opts:
+      - --strip-components=1
+    tags: ['never', 'etcd']
+  - file: 
+      path: /usr/local/bin/etcd-download-test
+      state: absent
+    tags: ['never', 'etcd']
+
+  - name: test etcd
+    shell: "/usr/local/bin/etcd --version"
+    register: etcd
+    tags: ['never', 'etcd', 'etcdtest']
+  - debug:
+      var: etcd.stdout_lines
+    tags: ['never', 'etcd', 'etcdtest']
+
+  - name: test etcdctl
+    shell: "/usr/local/bin/etcdctl version"
+    register: etcdctl
+    tags: ['never', 'etcd', 'etcdtest']
+  - debug:
+      var: etcdctl.stdout_lines
+    tags: ['never', 'etcd', 'etcdtest']
 
 
