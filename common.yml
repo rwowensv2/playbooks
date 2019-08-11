@@ -11,8 +11,17 @@
 
   vars:
  # create vars for lua and haproxy packages, urls, etc.
-    - ansible_ssh_user: "{{ me }}"
+ # behind fwall
+    ansible_ssh_user: "{{ me }}"
  #   - ansible_become_pass: "{{ root_remote }}"
+    gourl: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
+    luaurl: https://www.lua.org/ftp/lua-5.3.5.tar.gz
+    haurl: http://www.haproxy.org/download/2.0/src/haproxy-2.0.3.tar.gz
+    confdurl: https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64
+    ETCD_VER: v3.3.13
+    GOOGLE_URL: https://storage.googleapis.com/etcd
+    GITHUB_URL: https://github.com/etcd-io/etcd/releases/download
+    DOWNLOAD_URL: "{{ GOOGLE_URL }}"
 
   tasks:
   - name: patch
@@ -31,7 +40,7 @@
   #
   - name: get go
     get_url:
-      url: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
+      url: "{{ gourl }}"
       dest: /usr/local/src
     tags: ['never', 'go', 'etcd']
 
@@ -118,13 +127,13 @@
 
   - name: haproxy lua source
     get_url:
-      url: https://www.lua.org/ftp/lua-5.3.5.tar.gz
+      url: "{{ luaurl }}"
       dest: /usr/local/src/lua-5.3.5.tar.gz
     tags: ['never', 'haproxy']
 
   - name: haproxy source
     get_url:
-      url: http://www.haproxy.org/download/2.0/src/haproxy-2.0.3.tar.gz
+      url: "{{ haurl }}"
       dest: /usr/local/src/haproxy-2.0.3.tar.gz
     tags: ['never', 'haproxy']
 
@@ -212,7 +221,7 @@
 # 
   - name: confd
     get_url:
-      url: https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64
+      url: "{{ confdurl }}"
       dest: /usr/local/bin/confd
       owner: root
       group: root
