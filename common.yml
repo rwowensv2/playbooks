@@ -1,8 +1,8 @@
 ---
 - name: common
-  hosts: vbox01
+  hosts: vbox
   become: yes
-  become_method: su
+  become_method: sudo
   become_user: root
   gather_facts: no
 
