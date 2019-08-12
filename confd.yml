@@ -9,10 +9,13 @@
   gather_facts: no
 
   vars_files:
-    - ~/vault.yml
+    - ~/vault.yaml
+    - ~/internal.yaml
 
   vars:
     - ansible_ssh_user: "{{ me }}"
+    - confdurl: https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64
+
   
   tasks:
   - name: rmold confd
@@ -22,7 +25,7 @@
 
   - name: get confd
     get_url:
-      url: https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64
+      url: "{{ confdurl }}"
       dest: /usr/local/bin/confd
       owner: root
       group: root
@@ -35,4 +38,45 @@
   - debug:
       var: confd.stdout_lines
     tags: confdtest
+  
+  - name: setup config dir
+    file:
+      path: "{{ item }}"
+      state: directory
+    with_items:
+      - /etc/confd/conf.d
+      - /etc/confd/templates
+    tags:
+      - post
+
+  - name: toml files
+    copy:
+      src: "./files/{{ item }}"
+      dest: /etc/confd/conf.d/
+    with_items:
+      - confd-haapp.toml
+    tags:
+      - post
+
+  - name: tmpl files
+    copy:
+      src: "./files/{{ item }}"
+      dest: /etc/confd/templates/
+    with_items:
+      - confd-haapp.conf.tmpl
+    tags:
+      - post
+
+  - name: confd systemd
+    copy:
+      src: confd.service
+      dest: /etc/systemd/system/confd.service
+    tags: 
+      - post
+  - systemd:
+       name: confd
+       enabled: yes
+       state: stopped
+    tags: 
+      - post
 

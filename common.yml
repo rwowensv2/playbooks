@@ -1,27 +1,34 @@
 ---
 - name: common
-  hosts: vbox
+  hosts: vbox01
   become: yes
-  become_method: sudo
+  become_method: su
   become_user: root
-  gather_facts: no
+  gather_facts: yes
 
   vars_files:
     - ~/vault.yaml
+    - ~/internal.yaml
 
   vars:
  # create vars for lua and haproxy packages, urls, etc.
  # behind fwall
     ansible_ssh_user: "{{ me }}"
  #   - ansible_become_pass: "{{ root_remote }}"
+ #
+ # External
     gourl: https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz
     luaurl: https://www.lua.org/ftp/lua-5.3.5.tar.gz
     haurl: http://www.haproxy.org/download/2.0/src/haproxy-2.0.3.tar.gz
     confdurl: https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64
+    terraurl: https://releases.hashicorp.com/terraform/0.12.5/terraform_0.12.5_linux_amd64.zip 
     ETCD_VER: v3.3.13
     GOOGLE_URL: https://storage.googleapis.com/etcd
     GITHUB_URL: https://github.com/etcd-io/etcd/releases/download
     DOWNLOAD_URL: "{{ GOOGLE_URL }}"
+    etcdurl: "{{ DOWNLOAD_URL }}/{{ ETCD_VER }}/etcd-{{ ETCD_VER }}-linux-amd64.tar.gz"
+# Internal (see internal.yaml)
+
 
   tasks:
   - name: patch
@@ -69,11 +76,24 @@
 
   - name: add docker repo
     shell: "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
+    tags: ['never', 'dockerext']
 
   - name: docker packages
     yum: 
       name: ['docker-ce', 'docker-ce-cli', 'containerd.io']
       state: present
+    tags: ['never', 'dockerext']
+
+  - name: install docker packages
+    yum:
+      name: "{{ dockerurl }}/{{ item }}"
+      state: present
+    with_items:
+      - docker-ce-19.03.1-3.el7.x86_64.rpm
+      - docker-ce-cli-19.03.1-3.el7.x86_64.rpm
+      - containerd.io-1.2.6-3.3.el7.x86_64.rpm
+    tags: 
+      - dockerint
 
   - name: enable docker
     systemd:
@@ -83,6 +103,8 @@
     with_items:
       - docker
       - docker.socket
+    tags:
+      - dockerext
 
   - name: enable firewalld
     systemd:
@@ -92,7 +114,7 @@
    
   - name: terraform
     unarchive:
-      src: https://releases.hashicorp.com/terraform/0.12.5/terraform_0.12.5_linux_amd64.zip 
+      src: "{{ terraurl }}"
       dest: /usr/local/bin
       remote_src: yes
     tags: ['never', 'terraform']
@@ -204,7 +226,7 @@
   - copy:
       src: ./files/haproxy.conf
       dest: /etc/haproxy/haproxy.conf
-    tags: ['never', 'haproxy']
+    tags: ['never', 'haproxy', 'hapconfig']
       
   - name: haproxy systemd
     copy:
@@ -240,7 +262,7 @@
 #
   - name: unarchive etcd
     unarchive:
-      src: "{{ DOWNLOAD_URL }}/{{ ETCD_VER }}/etcd-{{ ETCD_VER }}-linux-amd64.tar.gz"
+      src: "{{ etcdurl }}"
       dest: /usr/local/bin
       remote_src: yes
       extra_opts:
@@ -260,11 +282,24 @@
     tags: ['never', 'etcd', 'etcdtest']
 
   - name: test etcdctl
-    shell: "/usr/local/bin/etcdctl version"
+    shell: "/usr/local/bin/etcdctl --version"
     register: etcdctl
     tags: ['never', 'etcd', 'etcdtest']
   - debug:
       var: etcdctl.stdout_lines
     tags: ['never', 'etcd', 'etcdtest']
+
+  - name: etcd systemd
+    copy:
+      src: etcd.service
+      dest: /etc/systemd/system/etcd.service
+    tags: ['never', 'etcd', 'etcdpost']
+  - systemd:
+       name: etcd
+       enabled: yes
+       state: stopped
+    tags: ['never', 'etcd', 'etcdpost']
+
+  
 
 

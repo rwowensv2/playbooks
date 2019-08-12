@@ -16,7 +16,7 @@ frontend http
     default_backend servers
 
 backend servers
-    server server 127.0.0.1:81
+#    server server 127.0.0.1:81
   {{range $server := .app_servers}}
   server {{Base $server.Key}} {{$server.Value}} check
   {{end}}

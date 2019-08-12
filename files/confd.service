@@ -1,0 +1,14 @@
+[Unit]
+Description=confd
+Wants=etcd.service
+After=etcd.service network.target
+
+[Service]
+Type=simple
+#EnvironmentFile=/etc/sysconfig/haproxy
+ExecStart=/usr/local/bin/confd -interval 10 -node -confdir /etc/confd
+ExecReload=/bin/kill -USR2 $MAINPID
+ExecStop=/bin/kill -USR1 $MAINPID
+
+[Install]
+WantedBy=multi-user.target
