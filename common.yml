@@ -95,6 +95,16 @@
     tags: 
       - dockerint
 
+  - name: docker compose
+    get_url:
+      url:  "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-{{ ansible_system }}-{{ ansible_userspace_architecture }}"
+      dest: /usr/local/bin/docker-compose
+      owner: root
+      group: root
+      mode: 0755
+    tags:
+      - compose
+
   - name: enable docker
     systemd:
       name: "{{ item }}"
