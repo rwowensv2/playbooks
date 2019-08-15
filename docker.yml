@@ -1,10 +1,10 @@
 ---
 # docker install centos
 - name: docker
+  hosts: swarm
   become_user: root
   become_method: sudo
   become: yes
-  hosts: vbox
 
   vars_files:
     - ~/vault.yaml
@@ -47,5 +47,14 @@
         - 7946/udp
         - 4789/udp
       tags: ['never', 'swarm']
+
+    - name: docker-machine
+      get_url:
+        url: "https://github.com/docker/machine/releases/download/v0.16.0/ocker-machine-{{ ansible_system }}-{{ ansible_userspace_architecture }}"
+        dest: /usr/local/bin/docker-machine
+        owner: root
+        group: root 
+        mode: 0755
+      tags: ['never', 'machine']
         
 

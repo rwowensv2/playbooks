@@ -121,7 +121,30 @@
       name: firewalld
       enabled: yes
       state: started
+
+  - name: firewall overlay
+    firewalld:
+      port: "{{ item }}"
+      permanent: yes
+      state: enabled
+    with_items:
+      - 2377/tcp
+      - 7946/tcp
+      - 7946/udp
+      - 4789/udp
+    tags: ['never', 'swarm']
    
+  - name: docker-machine
+    get_url:
+      url: "https://github.com/docker/machine/releases/download/v0.16.0/ocker-machine-{{ ansible_system }}-{{ ansible_userspace_architecture }}"
+      dest: /usr/local/bin/docker-machine
+      owner: root
+      group: root 
+      mode: 0755
+    tags: ['never', 'machine']
+
+  # Terraform
+  # 
   - name: terraform
     unarchive:
       src: "{{ terraurl }}"
