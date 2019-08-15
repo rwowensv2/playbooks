@@ -1,6 +1,6 @@
 ---
 - name: common
-  hosts: vbox01
+  hosts: swarm1
   become: yes
   become_method: su
   become_user: root
@@ -123,6 +123,19 @@
       name: firewalld
       enabled: yes
       state: started
+
+  - name: firewall overlay
+    firewalld:
+      port: "{{ item }}"
+      permanent: yes
+      state: enabled
+    with_items:
+      - 2377/tcp
+      - 7946/tcp
+      - 7946/udp
+      - 4789/udp
+    tags: 
+      - swarm
    
   - name: terraform
     unarchive:
@@ -311,7 +324,3 @@
        enabled: yes
        state: stopped
     tags: ['never', 'etcd', 'etcdpost']
-
-  
-
-
