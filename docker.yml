@@ -1,10 +1,10 @@
 ---
 # docker install centos
 - name: docker
+  hosts: swarm1
   become_user: root
   become_method: sudo
   become: yes
-  hosts: vbox
 
   vars_files:
     - ~/vault.yaml
@@ -12,9 +12,16 @@
   vars:
     ansible_ssh_pass: "{{ root_remote }}"
     composeurl: https://github.com/docker/compose/releases/download/1.24.1
-    dockerurl: dockerurl: http://10.10.10.10/custom/docker
+    dockerurl: http://10.10.10.10/custom/docker
 
   tasks:
+    - name: patch
+      yum:
+        name: '*'
+        state: latest
+        exclude: kernel*
+      tags: update
+
     - name: install prereqs
       yum:
         name: ['device-mapper-persistent-data', 'lvm2']
@@ -28,17 +35,17 @@
         name: ['docker-ce', 'docker-ce-cli', 'containerd.io']
         state: present
 
-  - name: install docker packages
-    yum:
-      name: "{{ dockerurl }}/{{ item }}"
-      state: present
-    with_items:
-      - docker-ce-19.03.1-3.el7.x86_64.rpm
-      - docker-ce-cli-19.03.1-3.el7.x86_64.rpm
-      - containerd.io-1.2.6-3.3.el7.x86_64.rpm
-    tags: 
-      - ['never', 'dockerint']
-
+#    - name: install docker packages
+#      yum:
+#        name: "{{ dockerurl }}/{{ item }}"
+#        state: present
+#      with_items:
+#        - docker-ce-19.03.1-3.el7.x86_64.rpm
+#        - docker-ce-cli-19.03.1-3.el7.x86_64.rpm
+#        - containerd.io-1.2.6-3.3.el7.x86_64.rpm
+#      tags: 
+#        - ['never', 'dockerint']
+  
     - name: docker compose
       get_url:
         url:  "{{ composeurl }}/docker-compose-{{ ansible_system }}-{{ ansible_userspace_architecture }}"
@@ -48,7 +55,7 @@
         mode: 0755
       tags:
         - compose
-
+  
     - name: firewall overlay
       firewalld:
         port: "{{ item }}"
@@ -58,7 +65,5 @@
         - 2377/tcp
         - 7946/tcp
         - 7946/udp
-        - 4789/udp
-      tags: ['never', 'swarm']
-        
-
+        - 4789/udp        
+  
