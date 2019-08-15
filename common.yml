@@ -22,7 +22,7 @@
     haurl: http://www.haproxy.org/download/2.0/src/haproxy-2.0.3.tar.gz
     confdurl: https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64
     terraurl: https://releases.hashicorp.com/terraform/0.12.5/terraform_0.12.5_linux_amd64.zip 
-    dockerurl: dockerurl: http://10.10.10.10/custom/docker
+    dockerurl: http://10.10.10.10/custom/docker
     composeurl: https://github.com/docker/compose/releases/download/1.24.1
     ETCD_VER: v3.3.13
     GOOGLE_URL: https://storage.googleapis.com/etcd
