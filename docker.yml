@@ -11,7 +11,8 @@
   
   vars:
     ansible_ssh_pass: "{{ root_remote }}"
-#    dockerurl: dockerurl: http://10.10.10.10/custom/docker
+    composeurl: https://github.com/docker/compose/releases/download/1.24.1
+    dockerurl: dockerurl: http://10.10.10.10/custom/docker
 
   tasks:
     - name: install prereqs
@@ -40,7 +41,7 @@
 
     - name: docker compose
       get_url:
-        url:  "{{ dockerurl }}/docker-compose-{{ ansible_system }}-{{ ansible_userspace_architecture }}"
+        url:  "{{ composeurl }}/docker-compose-{{ ansible_system }}-{{ ansible_userspace_architecture }}"
         dest: /usr/local/bin/docker-compose
         owner: root
         group: root
