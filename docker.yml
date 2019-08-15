@@ -11,6 +11,7 @@
   
   vars:
     ansible_ssh_pass: "{{ root_remote }}"
+#    dockerurl: dockerurl: http://10.10.10.10/custom/docker
 
   tasks:
     - name: install prereqs
@@ -20,15 +21,26 @@
     
     - name: install repo
       command: 'yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo'
-
+     
     - name: install docker
       yum:
         name: ['docker-ce', 'docker-ce-cli', 'containerd.io']
         state: present
 
+  - name: install docker packages
+    yum:
+      name: "{{ dockerurl }}/{{ item }}"
+      state: present
+    with_items:
+      - docker-ce-19.03.1-3.el7.x86_64.rpm
+      - docker-ce-cli-19.03.1-3.el7.x86_64.rpm
+      - containerd.io-1.2.6-3.3.el7.x86_64.rpm
+    tags: 
+      - dockerint
+
     - name: docker compose
       get_url:
-        url:  "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-{{ ansible_system }}-{{ ansible_userspace_architecture }}"
+        url:  "{{ dockerurl }}/docker-compose-{{ ansible_system }}-{{ ansible_userspace_architecture }}"
         dest: /usr/local/bin/docker-compose
         owner: root
         group: root
