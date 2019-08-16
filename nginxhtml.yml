@@ -1,0 +1,27 @@
+---
+- name: test nginx content
+  hosts: all
+  become: yes
+  become_method: sudo
+  become_user: root
+
+  vars_files:
+    - ~/vault.yaml
+
+  vars:
+    - ansible_ssh_user: "{{ me }}"
+
+  tasks:
+    - name: volume dir
+      file:
+        path: /usr/share/www
+        state: directory
+        owner: root
+        group: root 
+        mode: 0755
+
+    - name: index
+      template:
+        src: ./files/index.tmpl
+        dest: /usr/share/www/index.html
+        mode: 0444
