@@ -1,6 +1,6 @@
 ---
 - name: common
-  hosts: vbox01
+  hosts: swarm1
   become: yes
   become_method: su
   become_user: root
@@ -8,7 +8,7 @@
 
   vars_files:
     - ~/vault.yaml
-    - ~/internal.yaml
+#    - ~/internal.yaml
 
   vars:
  # create vars for lua and haproxy packages, urls, etc.
@@ -22,6 +22,8 @@
     haurl: http://www.haproxy.org/download/2.0/src/haproxy-2.0.3.tar.gz
     confdurl: https://github.com/kelseyhightower/confd/releases/download/v0.16.0/confd-0.16.0-linux-amd64
     terraurl: https://releases.hashicorp.com/terraform/0.12.5/terraform_0.12.5_linux_amd64.zip 
+    dockerurl: http://10.10.10.10/custom/docker
+    composeurl: https://github.com/docker/compose/releases/download/1.24.1
     ETCD_VER: v3.3.13
     GOOGLE_URL: https://storage.googleapis.com/etcd
     GITHUB_URL: https://github.com/etcd-io/etcd/releases/download
@@ -31,308 +33,292 @@
 
 
   tasks:
-  - name: patch
-    yum:
-      name: '*'
-      state: latest
-      exclude: kernel*
-    tags: update
-
-  - name: common packages
-    yum:
-      name: ['git.x86_64', 'unzip', 'net-tools', 'yum-utils', 'device-mapper-persistent-data', 'lvm2', 'bind-utils']
-      state: present
+    - name: patch
+      yum:
+        name: '*'
+        state: latest
+        exclude: kernel*
+      tags: update
   
-  # GO
-  #
-  - name: get go
-    get_url:
-      url: "{{ gourl }}"
-      dest: /usr/local/src
-    tags: ['never', 'go', 'etcd']
-
-  - name: install go
-    command: "tar -C /usr/local -xzf /usr/local/src/go1.12.7.linux-amd64.tar.gz"
-    tags: ['never', 'go', 'etcd']
-
-  - name: path go
-    lineinfile:
-      path: "{{ item }}"
-      backrefs: yes
-      regexp: '^export PATH=?'
-      line: 'export PATH=$PATH:/usr/local/go/bin'
-      state: present
-    with_items:
-      - /root/.bash_profile
-    tags: ['never', 'go', 'etcd']
-
-  # Docker
-  #
+    - name: common packages
+      yum:
+        name: ['git.x86_64', 'unzip', 'net-tools', 'yum-utils', 'device-mapper-persistent-data', 'lvm2', 'bind-utils']
+        state: present
     
-  - name: docker remove old
-    yum: 
-      name: ['docker-client', 'docker-client-latest', 'docker-common', 'docker-latest', 'docker-latest-logrotate', 'docker-logrotate', 'docker-engine']
-      state: absent
-
-  - name: add docker repo
-    shell: "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
-    tags: ['never', 'dockerext']
-
-  - name: docker packages
-    yum: 
-      name: ['docker-ce', 'docker-ce-cli', 'containerd.io']
-      state: present
-    tags: ['never', 'dockerext']
-
-  - name: install docker packages
-    yum:
-      name: "{{ dockerurl }}/{{ item }}"
-      state: present
-    with_items:
-      - docker-ce-19.03.1-3.el7.x86_64.rpm
-      - docker-ce-cli-19.03.1-3.el7.x86_64.rpm
-      - containerd.io-1.2.6-3.3.el7.x86_64.rpm
-    tags: 
-      - dockerint
-
-  - name: docker compose
-    get_url:
-      url:  "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-{{ ansible_system }}-{{ ansible_userspace_architecture }}"
-      dest: /usr/local/bin/docker-compose
-      owner: root
-      group: root
-      mode: 0755
-    tags:
-      - compose
-
-  - name: enable docker
-    systemd:
-      name: "{{ item }}"
-      enabled: yes
-      state: started
-    with_items:
-      - docker
-      - docker.socket
-    tags:
-      - dockerext
-
-  - name: enable firewalld
-    systemd:
-      name: firewalld
-      enabled: yes
-      state: started
-
-  - name: firewall overlay
-    firewalld:
-      port: "{{ item }}"
-      permanent: yes
-      state: enabled
-    with_items:
-      - 2377/tcp
-      - 7946/tcp
-      - 7946/udp
-      - 4789/udp
-    tags: ['never', 'swarm']
-   
-  - name: docker-machine
-    get_url:
-      url: "https://github.com/docker/machine/releases/download/v0.16.0/ocker-machine-{{ ansible_system }}-{{ ansible_userspace_architecture }}"
-      dest: /usr/local/bin/docker-machine
-      owner: root
-      group: root 
-      mode: 0755
-    tags: ['never', 'machine']
-
-  # Terraform
-  # 
-  - name: terraform
-    unarchive:
-      src: "{{ terraurl }}"
-      dest: /usr/local/bin
-      remote_src: yes
-    tags: ['never', 'terraform']
-
-# Minikube
-#
-  - name: minikube get
-    get_url:
-      url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-      dest: /usr/local/src/minkube
-      mode: 0755
-    tags: ['never', 'kube']
+    # GO
+    #
+    - name: get go
+      get_url:
+        url: "{{ gourl }}"
+        dest: /usr/local/src
+      tags: ['never', 'go', 'etcd']
   
-  - name: minikube install
-    command: "install /usr/local/src/minikube /usr/local/bin"
-    tags: ['never', 'kube']
-
-  - name: kubectl get
-    get_url:
-      url: https://storage.googleapis.com/kubernetes-release/release/v1.15.1/bin/linux/amd64/kubectl
-      dest: /usr/local/bin/kubectl
-      mode: 0755
-    tags: ['never', 'kube']
-
-# HA Proxy
-#
-  - name: haproxy deps
-    yum:
-      name: ['gcc', 'openssl-devel', 'readline-devel', 'systemd-devel', 'make', 'pcre-devel']
-      state: present
-    tags: ['never', 'haproxy']
-
-  - name: haproxy lua source
-    get_url:
-      url: "{{ luaurl }}"
-      dest: /usr/local/src/lua-5.3.5.tar.gz
-    tags: ['never', 'haproxy']
-
-  - name: haproxy source
-    get_url:
-      url: "{{ haurl }}"
-      dest: /usr/local/src/haproxy-2.0.3.tar.gz
-    tags: ['never', 'haproxy']
-
-  - name: haproxy lua extract
-    unarchive:
-      src: /usr/local/src/{{ item }}
-      dest: /usr/local/src
-      remote_src: yes
-    with_items:
-      - haproxy-2.0.3.tar.gz 
-      - lua-5.3.5.tar.gz
-    tags: ['never', 'haproxy']
-
-  - name: haproxy build lua
-    shell: "make INSTALL_TOP=/opt/lua-5.3.5 linux install"
-    args:
-      chdir: /usr/local/src/lua-5.3.5
-    tags: ['never', 'haproxy']
-
-  - name: haproxy build haproxy
-    copy:
-      src: ./files/haproxy.build
-      dest: /usr/local/src/haproxy-2.0.3
-      mode: 0755
-    tags: ['never', 'haproxy']
-  - shell: "/bin/bash haproxy.build"
-    args:
-      chdir: /usr/local/src/haproxy-2.0.3
-    tags: ['never', 'haproxy']
-  - shell: "make help"
-    args:
-      chdir: /usr/local/src/haproxy-2.0.3
-    tags: ['never', 'haproxy']
-  - shell: "make PREFIX=/opt/haproxy install"
-    args:
-      chdir: /usr/local/src/haproxy-2.0.3
-    tags: ['never', 'haproxy']
-
-  - name: haproxy user
-    group:
-      name: haproxy
-      gid: 188
-      state: present
-    tags: ['never', 'haproxy']
-  - user:
-      name: haproxy
-      comment: haproxy
-      uid: 188
-      group: haproxy
-      shell: /sbin/nologin
-      home: /var/lib/haproxy
-    tags: ['never', 'haproxy']
+    - name: install go
+      command: "tar -C /usr/local -xzf /usr/local/src/go1.12.7.linux-amd64.tar.gz"
+      tags: ['never', 'go', 'etcd']
   
-  - name: haproxy sysconfig
-    copy:
-      src: ./files/haproxy.sysconfig
-      dest: /etc/sysconfig/haproxy
-    tags: ['never', 'haproxy']
-
-  - name: haproxy config
-    file:
-      path: /etc/haproxy
-      owner: haproxy
-      group: haproxy
-      mode: 0755
-      state: directory
-    tags: ['never', 'haproxy']
-  - copy:
-      src: ./files/haproxy.conf
-      dest: /etc/haproxy/haproxy.conf
-    tags: ['never', 'haproxy', 'hapconfig']
+    - name: path go
+      lineinfile:
+        path: "{{ item }}"
+        backrefs: yes
+        regexp: '^export PATH=?'
+        line: 'export PATH=$PATH:/usr/local/go/bin'
+        state: present
+      with_items:
+        - /root/.bash_profile
+      tags: ['never', 'go', 'etcd']
+  
+    # Docker
+    #
       
-  - name: haproxy systemd
-    copy:
-      src: haproxy.service
-      dest: /etc/systemd/system/haproxy.service
-    tags: ['never', 'haproxy']
-  - systemd:
-       name: haproxy
-       enabled: yes
-       state: stopped
-    tags: ['never', 'haproxy']
-
-# Confd
-# 
-  - name: confd
-    get_url:
-      url: "{{ confdurl }}"
-      dest: /usr/local/bin/confd
-      owner: root
-      group: root
-      mode: 0755
-    tags: ['never', 'confd']
-
-  - name: test confd
-    shell: "/usr/local/bin/confd --version"
-    register: confd
-    tags: ['never', 'confd', 'confdtest']
-  - debug:
-      var: confd.stdout_lines
-    tags: ['never', 'confd', 'confdtest']
-
-# Etcd
-#
-  - name: unarchive etcd
-    unarchive:
-      src: "{{ etcdurl }}"
-      dest: /usr/local/bin
-      remote_src: yes
-      extra_opts:
-      - --strip-components=1
-    tags: ['never', 'etcd']
-  - file: 
-      path: /usr/local/bin/etcd-download-test
-      state: absent
-    tags: ['never', 'etcd']
-
-  - name: test etcd
-    shell: "/usr/local/bin/etcd --version"
-    register: etcd
-    tags: ['never', 'etcd', 'etcdtest']
-  - debug:
-      var: etcd.stdout_lines
-    tags: ['never', 'etcd', 'etcdtest']
-
-  - name: test etcdctl
-    shell: "/usr/local/bin/etcdctl --version"
-    register: etcdctl
-    tags: ['never', 'etcd', 'etcdtest']
-  - debug:
-      var: etcdctl.stdout_lines
-    tags: ['never', 'etcd', 'etcdtest']
-
-  - name: etcd systemd
-    copy:
-      src: etcd.service
-      dest: /etc/systemd/system/etcd.service
-    tags: ['never', 'etcd', 'etcdpost']
-  - systemd:
-       name: etcd
-       enabled: yes
-       state: stopped
-    tags: ['never', 'etcd', 'etcdpost']
-
+    - name: docker remove old
+      yum: 
+        name: ['docker-client', 'docker-client-latest', 'docker-common', 'docker-latest', 'docker-latest-logrotate', 'docker-logrotate', 'docker-engine']
+        state: absent
   
-
-
+    - name: add docker repo
+      shell: "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo"
+      tags: ['never', 'dockerext']
+  
+    - name: docker packages
+      yum: 
+        name: ['docker-ce', 'docker-ce-cli', 'containerd.io']
+        state: present
+      tags: ['never', 'dockerext']
+  
+#    - name: install docker packages
+#      yum:
+#        name: "{{ dockerurl }}/{{ item }}"
+#        state: present
+#      with_items:
+#        - docker-ce-19.03.1-3.el7.x86_64.rpm
+#        - docker-ce-cli-19.03.1-3.el7.x86_64.rpm
+#        - containerd.io-1.2.6-3.3.el7.x86_64.rpm
+#      tags: 
+#        - ['never', 'dockerint']
+  
+    - name: docker compose
+      get_url:
+        url:  "{{ composeurl }}/docker-compose-{{ ansible_system }}-{{ ansible_userspace_architecture }}"
+        dest: /usr/local/bin/docker-compose
+        owner: root
+        group: root
+        mode: 0755
+      tags:
+        - compose
+  
+    - name: enable docker
+      systemd:
+        name: "{{ item }}"
+        enabled: yes
+        state: started
+      with_items:
+        - docker
+        - docker.socket
+  
+    - name: enable firewalld
+      systemd:
+        name: firewalld
+        enabled: yes
+        state: started
+  
+    - name: firewall overlay
+      firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled
+      with_items:
+        - 2377/tcp
+        - 7946/tcp
+        - 7946/udp
+        - 4789/udp
+      tags: 
+        - swarm
+     
+    - name: terraform
+      unarchive:
+        src: "{{ terraurl }}"
+        dest: /usr/local/bin
+        remote_src: yes
+      tags: ['never', 'terraform']
+  
+  # Minikube
+  #
+    - name: minikube get
+      get_url:
+        url: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        dest: /usr/local/src/minkube
+        mode: 0755
+      tags: ['never', 'kube']
+    
+    - name: minikube install
+      command: "install /usr/local/src/minikube /usr/local/bin"
+      tags: ['never', 'kube']
+  
+    - name: kubectl get
+      get_url:
+        url: https://storage.googleapis.com/kubernetes-release/release/v1.15.1/bin/linux/amd64/kubectl
+        dest: /usr/local/bin/kubectl
+        mode: 0755
+      tags: ['never', 'kube']
+  
+  # HA Proxy
+  #
+    - name: haproxy deps
+      yum:
+        name: ['gcc', 'openssl-devel', 'readline-devel', 'systemd-devel', 'make', 'pcre-devel']
+        state: present
+      tags: ['never', 'haproxy']
+  
+    - name: haproxy lua source
+      get_url:
+        url: "{{ luaurl }}"
+        dest: /usr/local/src/lua-5.3.5.tar.gz
+      tags: ['never', 'haproxy']
+  
+    - name: haproxy source
+      get_url:
+        url: "{{ haurl }}"
+        dest: /usr/local/src/haproxy-2.0.3.tar.gz
+      tags: ['never', 'haproxy']
+  
+    - name: haproxy lua extract
+      unarchive:
+        src: /usr/local/src/{{ item }}
+        dest: /usr/local/src
+        remote_src: yes
+      with_items:
+        - haproxy-2.0.3.tar.gz 
+        - lua-5.3.5.tar.gz
+      tags: ['never', 'haproxy']
+  
+    - name: haproxy build lua
+      shell: "make INSTALL_TOP=/opt/lua-5.3.5 linux install"
+      args:
+        chdir: /usr/local/src/lua-5.3.5
+      tags: ['never', 'haproxy']
+  
+    - name: haproxy build haproxy
+      copy:
+        src: ./files/haproxy.build
+        dest: /usr/local/src/haproxy-2.0.3
+        mode: 0755
+      tags: ['never', 'haproxy']
+    - shell: "/bin/bash haproxy.build"
+      args:
+        chdir: /usr/local/src/haproxy-2.0.3
+      tags: ['never', 'haproxy']
+    - shell: "make help"
+      args:
+        chdir: /usr/local/src/haproxy-2.0.3
+      tags: ['never', 'haproxy']
+    - shell: "make PREFIX=/opt/haproxy install"
+      args:
+        chdir: /usr/local/src/haproxy-2.0.3
+      tags: ['never', 'haproxy']
+  
+    - name: haproxy user
+      group:
+        name: haproxy
+        gid: 188
+        state: present
+      tags: ['never', 'haproxy']
+    - user:
+        name: haproxy
+        comment: haproxy
+        uid: 188
+        group: haproxy
+        shell: /sbin/nologin
+        home: /var/lib/haproxy
+      tags: ['never', 'haproxy']
+    
+    - name: haproxy sysconfig
+      copy:
+        src: ./files/haproxy.sysconfig
+        dest: /etc/sysconfig/haproxy
+      tags: ['never', 'haproxy']
+  
+    - name: haproxy config
+      file:
+        path: /etc/haproxy
+        owner: haproxy
+        group: haproxy
+        mode: 0755
+        state: directory
+      tags: ['never', 'haproxy']
+    - copy:
+        src: ./files/haproxy.conf
+        dest: /etc/haproxy/haproxy.conf
+      tags: ['never', 'haproxy', 'hapconfig']
+        
+    - name: haproxy systemd
+      copy:
+        src: haproxy.service
+        dest: /etc/systemd/system/haproxy.service
+      tags: ['never', 'haproxy']
+    - systemd:
+         name: haproxy
+         enabled: yes
+         state: stopped
+      tags: ['never', 'haproxy']
+  
+  # Confd
+  # 
+    - name: confd
+      get_url:
+        url: "{{ confdurl }}"
+        dest: /usr/local/bin/confd
+        owner: root
+        group: root
+        mode: 0755
+      tags: ['never', 'confd']
+  
+    - name: test confd
+      shell: "/usr/local/bin/confd --version"
+      register: confd
+      tags: ['never', 'confd', 'confdtest']
+    - debug:
+        var: confd.stdout_lines
+      tags: ['never', 'confd', 'confdtest']
+  
+  # Etcd
+  #
+    - name: unarchive etcd
+      unarchive:
+        src: "{{ etcdurl }}"
+        dest: /usr/local/bin
+        remote_src: yes
+        extra_opts:
+        - --strip-components=1
+      tags: ['never', 'etcd']
+    - file: 
+        path: /usr/local/bin/etcd-download-test
+        state: absent
+      tags: ['never', 'etcd']
+  
+    - name: test etcd
+      shell: "/usr/local/bin/etcd --version"
+      register: etcd
+      tags: ['never', 'etcd', 'etcdtest']
+    - debug:
+        var: etcd.stdout_lines
+      tags: ['never', 'etcd', 'etcdtest']
+  
+    - name: test etcdctl
+      shell: "/usr/local/bin/etcdctl --version"
+      register: etcdctl
+      tags: ['never', 'etcd', 'etcdtest']
+    - debug:
+        var: etcdctl.stdout_lines
+      tags: ['never', 'etcd', 'etcdtest']
+  
+    - name: etcd systemd
+      copy:
+        src: etcd.service
+        dest: /etc/systemd/system/etcd.service
+      tags: ['never', 'etcd', 'etcdpost']
+    - systemd:
+         name: etcd
+         enabled: yes
+         state: stopped
+      tags: ['never', 'etcd', 'etcdpost']
