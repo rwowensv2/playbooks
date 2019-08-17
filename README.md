@@ -18,6 +18,7 @@ composeurl: https://localhost:8080/custom/docker
 ```
 
 ## Ansible Swarm
+Python Dephole
 
 ```
 sudo yum install epel-release
@@ -30,6 +31,16 @@ pip uninstall docker-py
 
 pip install docker-py
 ```
+
+## swarm.yml
+Inventory vars example, and hostvar expl.
+```
+[swarm]
+desk.owens.dev role=leader
+centvbox.owens.dev	
+vbox2.owens.dev		
+```
+
 # Traefik
 ```
 #
