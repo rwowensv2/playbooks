@@ -26,7 +26,8 @@
       yum:
         name: ['device-mapper-persistent-data', 'lvm2']
         state: present
-    
+      tags: dockerint
+
     - name: install repo
       command: 'yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo'
      
@@ -35,16 +36,14 @@
         name: ['docker-ce', 'docker-ce-cli', 'containerd.io']
         state: present
 
-#    - name: install docker packages
-#      yum:
-#        name: "{{ dockerurl }}/{{ item }}"
-#        state: present
-#      with_items:
-#        - docker-ce-19.03.1-3.el7.x86_64.rpm
-#        - docker-ce-cli-19.03.1-3.el7.x86_64.rpm
-#        - containerd.io-1.2.6-3.3.el7.x86_64.rpm
-#      tags: 
-#        - ['never', 'dockerint']
+   - name: install docker private
+      yum:
+        name: 
+          - "{{ dockerurl }}/docker-ce-19.03.1-3.el7.x86_64.rpm"
+          - "{{ dockerurl }}/docker-ce-cli-19.03.1-3.el7.x86_64.rpm"
+          - "{{ dockerurl }}/containerd.io-1.2.6-3.3.el7.x86_64.rpm"
+        state: present
+      tags: ['never', 'dockerint']
   
     - name: docker compose
       get_url:
@@ -76,5 +75,11 @@
         group: root 
         mode: 0755
       tags: ['never', 'machine']
+
+    - name: docker start
+      systemd:
+        name: docker
+        enabled: yes
+        state: restarted
         
 
