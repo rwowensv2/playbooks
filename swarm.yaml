@@ -1,6 +1,6 @@
 ---
 - name: swarm
-  hosts: centvbox.owens.dev
+  hosts: nodes
   become: yes
   become_method: sudo
   become_user: root
