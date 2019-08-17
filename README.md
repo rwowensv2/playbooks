@@ -17,4 +17,18 @@ composeurl: https://localhost:8080/custom/docker
 
 ```
 
+## Ansible Swarm
+
+```
+sudo yum install epel-release
+
+yum install python2-pip
+
+pip install --upgrade pip
+
+pip uninstall docker-py
+
+pip install docker-py
+```
+
 https://www.youtube.com/watch?v=Z3S2gMBUkBo

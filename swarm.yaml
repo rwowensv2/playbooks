@@ -1,0 +1,60 @@
+---
+- name: swarm
+  hosts: centvbox.owens.dev
+  become: yes
+  become_method: sudo
+  become_user: root
+
+  vars_files:
+    - ~/vault.yaml
+
+  vars:
+    - ansible_ssh_user: "{{ me }}"
+    - token: SWMTKN-1-43vqck7ndbcb9vrg77zxvfwwbgeu6mo49os5o0nmh6kdmh6sw5-6rz4ehk8mx2wtto66qeoo9ym7
+
+  tasks:
+    # Create
+    - name: create swarm
+      docker_swarm:
+    # weird bug, no ipv4 error but var and module register
+    #    advertise_addr: "{{ ansible_default_ipv4 }}"
+        listen_addr: "{{ ansible_default_ipv4.address }}:2377"
+        state: present
+      register: create
+      tags: start
+    - debug:
+        var: create.swarm_facts.JoinTokens.Worker
+      tags: start
+
+    - name: Add nodes
+      docker_swarm:
+        state: join
+        advertise_addr: "{{ ansible_default_ipv4.address}}"
+    #    join_token: "{{ swarm_facts.JoinTokens.Worker }}"
+        join_token: "{{ token }}"
+        remote_addrs: [ '192.168.1.21:2377' ]
+      tags: join
+
+    # Destroy
+    - name: destroy swarm
+      docker_swarm:
+        state: remove
+        node_id: "{{ item }}"
+      with_items:
+        - centvbox.owens.dev
+        - vbox2.owens.dev
+      tags: stop
+    - docker_swarm:
+        state: absent
+        force: true
+      register: destroy
+      tags: 
+        - stop
+        - stopleader
+    - debug:
+        var: destroy
+      tags: 
+        - stop
+        - stopleader
+    
+
