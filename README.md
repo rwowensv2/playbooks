@@ -115,4 +115,18 @@ ID                  NAME                IMAGE               NODE                
 i9scy6y928f2        nginxdev.1          nginx:latest        centvbox.owens.dev   Running             Running 5 minutes ago                       
 p66qahf1ya0h        nginxdev.2          nginx:latest        desk.owens.dev       Running             Running 2 minutes ago                       
 ```
+
+# Portainer
+(Portainer Getting Started)[https://www.portainer.io/installation/]  
+(Portainer Documentation)[https://portainer.readthedocs.io/en/stable/index.html]  
+
+## Quick Start
+```
+docker volume create portainer_data
+
+docker run -d -p 8000:8000 -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer
+```
+
+
+
 https://www.youtube.com/watch?v=Z3S2gMBUkBo
