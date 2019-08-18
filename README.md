@@ -115,6 +115,11 @@ ID                  NAME                IMAGE               NODE                
 i9scy6y928f2        nginxdev.1          nginx:latest        centvbox.owens.dev   Running             Running 5 minutes ago                       
 p66qahf1ya0h        nginxdev.2          nginx:latest        desk.owens.dev       Running             Running 2 minutes ago                       
 ```
+### Traefik HealthCheck
+```
+docker service update --label-add traefik.backend.healthcheck.path=/nginx traefik
+docker service update --label-add traefik.backend.healthcheck.interval=5s traefik
+```
 
 # Portainer
 [Portainer Getting Started](https://www.portainer.io/installation/)  
