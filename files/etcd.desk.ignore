@@ -1,0 +1,22 @@
+[Unit]
+Description=etcd key-value store
+Documentation=https://github.com/etcd-io/etcd
+After=network.target
+
+[Service]
+User=etcd
+Type=notify
+Environment=ETCD_DATA_DIR=/var/lib/etcd
+#Environment=ETCD_NAME=desk
+ExecStart=/usr/local/bin/etcd --name desk --initial-advertise-peer-urls http://192.168.1.21:2380 \
+  --listen-peer-urls http://192.168.1.21:2380 \
+  --listen-client-urls http://192.168.1.21:2379,http://127.0.0.1:2379 \
+  --advertise-client-urls http://192.168.1.21:2379 \
+  --initial-cluster-token etcd-cluster-1 \
+  --initial-cluster desk=http://192.168.1.21:2380,vbox1=http://192.168.1.201:2380,vbox2=http://192.168.1.202:2380 \
+  --initial-cluster-state new
+Restart=always
+RestartSec=10s
+LimitNOFILE=40000
+
+[Install]

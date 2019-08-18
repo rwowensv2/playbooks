@@ -1,0 +1,37 @@
+---
+- name: etcd systemd
+  hosts: swarm
+  become: yes
+  become_method: sudo
+  become_user: root
+
+  vars_files:
+    - ~/vault.yaml
+
+  vars:
+    - ansible_ssh_user: "{{ me }}"
+
+  tasks:
+    - name: etcd restart
+      systemd:
+        name: etcd
+        state: restarted
+        enabled: no
+      tags:
+        - restart
+
+    - name: etcd stop
+      systemd:
+        name: etcd
+        state: stopped
+        enabled: no
+      tags:
+        - stop
+
+    - name: etcd start
+      systemd:
+        name: etcd
+        state: started
+        enabled: yes
+      tags:
+        - start

@@ -1,9 +1,9 @@
 --- 
 # http://play.etcd.io/install
 - name: etcd install
-  hosts: vbox01
+  hosts: swarm
   become: yes
-  become_method: su
+  become_method: sudo
   become_user: root
   gather_facts: yes
 
@@ -83,7 +83,7 @@
       comment: etcd
       uid: 1010
       group: etcd
-      home: /usr/local/lib/etcd
+      home: /var/lib/etcd
       shell: /sbin/nologin
     tags: 
       - post
@@ -98,16 +98,53 @@
     tags:
       - post
 
+  - name: firewall
+    firewalld:
+      port: "{{ item }}"
+      permanent: yes
+      state: enabled
+    with_items:
+       - 2379/tcp
+       - 2380/tcp
+    tags:
+      - post
+
+  - name:
+    systemd:
+      name: firewalld
+      enabled: yes
+      state: restarted
+    tags:
+      - post
+
   - name: etcd systemd
     copy:
-      src: etcd.service
+      src: ./files/etcd.{{ ansible_hostname }}.ignore
       dest: /etc/systemd/system/etcd.service
     tags: 
       - post
   - systemd:
        name: etcd
-       enabled: yes
+       enabled: no
+       daemon_reload: yes
        state: stopped
     tags: 
       - post
+
+  - name: RESET
+    systemd:
+      name: etcd
+      enabled: no
+      state: stopped
+    tags: ['never', 'reset']
+
+  - name: REMOVE DATA
+    file:
+      path: "/var/lib/etcd/{{ item }}"
+      state: absent
+    with_items:
+      - fixtures
+      - member
+    tags: ['never', 'reset']
+      
   
