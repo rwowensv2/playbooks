@@ -47,11 +47,11 @@ vbox2.owens.dev
 # Traefik Host Based 
 
 # create overlay network
-docker network create --driver=overlay traefik-net
+sudo docker network create --driver=overlay traefik-net
 
 #
 # Create traefik service
-docker service create \
+sudo docker service create \
     --name traefik \
     --constraint=node.role==manager \
     --publish 80:80 --publish 8080:8080 \
@@ -64,9 +64,10 @@ docker service create \
     --docker.watch \
     --api
 
-#
-# Create nginx test web
-docker service create \
+# Service Tests
+
+## Create nginx basic service
+sudo docker service create \
   --name nginxdev \
   --label traefik.port=80 \
   --network traefik-net \
@@ -74,9 +75,30 @@ docker service create \
   --detach \
   nginx
 
+## Nginx Test service prints host (nginxhtml.yml)
+sudo docker service create \
+  --name nginxdev \
+  --mount type=bind,source=/usr/share/www/,destination=/usr/share/nginx/html/ \
+  --label traefik.port=80 \
+  --network traefik-net \
+  --label traefik.frontend.rule="Host:www.owens.dev" \
+  --detach \
+  nginx
+
+## Nginx Test Pathstrip http://mysite.com/test/ will route to Nginx:/
+sudo docker service create \
+  --name nginxpath \
+  --label traefik.port=80 \
+  --network traefik-net \
+  --label traefik.frontend.rule="PathStrip:/test" \
+  --detach \
+  nginx
+
+
+
 #
 # Check it
-docker service ls
+sudo docker service ls
 ID                  NAME                MODE                REPLICAS            IMAGE               PORTS
 1vit7x7zd0xj        nginxdev            replicated          2/2                 nginx:latest        
 yn703xe3quw2        traefik             replicated          1/1                 traefik:latest      *:80->80/tcp, *:8080->8080/tcp
@@ -84,7 +106,7 @@ yn703xe3quw2        traefik             replicated          1/1                 
 
 #
 # Scale the Service
-docker service scale nginxdev="2"
+sudo docker service scale nginxdev="2"
 
 #
 # Check it

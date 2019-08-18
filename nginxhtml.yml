@@ -1,6 +1,6 @@
 ---
 - name: test nginx content
-  hosts: all
+  hosts: swarm
   become: yes
   become_method: sudo
   become_user: root
