@@ -1,4 +1,6 @@
 ---
+# Setup for running Azure Pipeline Agent for Linux
+#
 # https://github.com/microsoft/azure-pipelines-agent/blob/master/docs/start/envlinux.md
 # https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=netcore2x
 - name: dotnet core
@@ -28,3 +30,22 @@
       yum:
         name: dotnet-sdk-2.2
         state: present
+
+    - name: azure agent user
+      group:
+        name: azagent
+        gid: 1020
+        state: present
+      tags:
+        - post
+    - user:
+        name: azagent
+        comment: azagent
+        uid: 1020
+        group: azagent
+        home: /home/azagent
+        shell: /sbin/nologin
+      tags: 
+       - post
+      
+      
