@@ -139,7 +139,9 @@ https://www.youtube.com/watch?v=Z3S2gMBUkBo
 
 
 ## Azure Pipelines
-Figured out so far :-)
+Figured out so far :-)  
+
+Creating a Azure Devops Account, be prepared to link to an existing GitHub Account (use your Github creds for Azure) and Create a project to link to existing repo.  I linked to Azure to test docker-compose stuff.  
 
 `dotnet.yaml` for installing agent prereq's and creating user.  Think gitlab-runner.  
 
