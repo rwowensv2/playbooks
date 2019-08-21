@@ -150,4 +150,6 @@ Figured out so far :-)
 * Goto your deployment group and select "Details", to get script (Target to Register)  
 * Run the script as the user. Had to give user temp sudo and revoke (gotta figure out a cleaner way)  
 
+ Note:  Script will prompt for the "Deployment Group" name you created, and "PAT" auth token you created!  
+
 Magic.  Your on-prem host will appear in the Deployment Group.  Next to work up a gitlab-ci.. err, azure-pipeline.yaml :-)  
