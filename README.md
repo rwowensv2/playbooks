@@ -47,7 +47,7 @@ vbox2.owens.dev
 # Traefik Host Based 
 
 # create overlay network
-sudo docker network create --driver=overlay traefik-net
+docker network create --driver overlay --attachable traefik-net
 
 #
 # Create traefik service
