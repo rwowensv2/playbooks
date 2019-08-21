@@ -135,8 +135,6 @@ docker run -d -p 8000:8000 -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.
 # etcd
 [Cluster](https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/clustering.md) 
 
-https://www.youtube.com/watch?v=Z3S2gMBUkBo
-
 
 ## Azure Pipelines
 Figured out so far :-)  
