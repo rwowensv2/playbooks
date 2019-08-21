@@ -1,0 +1,23 @@
+---
+- name: dotnet core
+  hosts: swarm
+  become: yes
+  become_method: sudo
+  become_user: root
+
+  vars_files:
+    - ~/vault.yaml
+
+  vars:
+    - ansible_ssh_user: "{{ me }}"
+  
+  tasks:
+    - name: dotnet product feed
+      yum:
+        name: https://packages.microsoft.com/config/rhel/7/packages-microsoft-prod.rpm
+        state: present
+    
+    - name: dotnet sdk
+      yum:
+        name: dotnet-sdk-2.2
+        state: present
