@@ -1,4 +1,6 @@
 ---
+# https://github.com/microsoft/azure-pipelines-agent/blob/master/docs/start/envlinux.md
+# https://docs.microsoft.com/en-us/dotnet/core/linux-prerequisites?tabs=netcore2x
 - name: dotnet core
   hosts: swarm
   become: yes
@@ -15,6 +17,11 @@
     - name: dotnet product feed
       yum:
         name: https://packages.microsoft.com/config/rhel/7/packages-microsoft-prod.rpm
+        state: present
+
+    - name: prereqs
+      yum:
+        name: ['lttng-ust', 'libcurl', 'openssl-libs', 'krb5-libs', 'libicu', 'zlib']
         state: present
     
     - name: dotnet sdk
