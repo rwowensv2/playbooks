@@ -139,5 +139,15 @@ https://www.youtube.com/watch?v=Z3S2gMBUkBo
 
 
 ## Azure Pipelines
+Figured out so far :-)
 
 `dotnet.yaml` for installing agent prereq's and creating user.  Think gitlab-runner.  
+
+* Azure Devops Account  
+* Create Access Token (copy n paste, vault it!)  
+* Create Deployment Group:  Pipelines > Deployment Group (use this name for the runner)  
+* Run `dotnet.yaml` to install prereq packages and create the user.
+* Goto your deployment group and select "Details", to get script (Target to Register)  
+* Run the script as the user. Had to give user temp sudo and revoke (gotta figure out a cleaner way)  
+
+Magic.  Your on-prem host will appear in the Deployment Group.  Next to work up a gitlab-ci.. err, azure-pipeline.yaml :-)  
