@@ -1,6 +1,6 @@
 ---
 - name: common
-  hosts: swarm1
+  hosts: vbox3.owens.dev
   become: yes
   become_method: su
   become_user: root
@@ -33,6 +33,10 @@
 
 
   tasks:
+    - name: hostname
+      hostname:
+        name: "{{ inventory_hostname }}"
+
     - name: patch
       yum:
         name: '*'
@@ -85,6 +89,7 @@
       yum:
         name: ['docker-ce', 'docker-ce-cli', 'containerd.io']
         state: present
+      tags: ['never', 'dockerext']
   
     - name: install docker private
       yum:
@@ -113,7 +118,9 @@
       with_items:
         - docker
         - docker.socket
-      tags: dockerint
+      tags: 
+        - ['never', 'dockerint', 'dockerext']
+#        - ['never', 'dockerext']
 
     - name: enable firewalld
       systemd:
