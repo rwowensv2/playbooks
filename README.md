@@ -164,3 +164,25 @@ save the image to a tarball:
 ```docker image save -o portainer.tar```  
 Copy the image to remote host (no dockerhub access), and load the image:  
 ```docker load -i portainer.tar```  
+
+## Working...  
+```
+sudo docker service create \
+    --name traefik \
+#    --constraint=node.role==manager \
+    --publish 80:80 --publish 8080:8080 \
+    --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
+    --network traefik-net \
+    traefik \
+    --docker \
+    --docker.swarmMode \
+    --docker.domain=traefik \
+    --docker.watch \
+    --storeconfig \
+    --api \
+    --etcd \
+    --etcd.endpoint=127.0.0.1:2379 \
+    --etcd.watch=true \
+    --etcd.prefix="/traefik" \
+    --etcd.useAPI3=true
+```
