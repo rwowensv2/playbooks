@@ -153,3 +153,14 @@ Creating a Azure Devops Account, be prepared to link to an existing GitHub Accou
  Note:  Script will prompt for the "Deployment Group" name you created, and "PAT" auth token you created!  
 
 Magic.  Your on-prem host will appear in the Deployment Group.  Next to work up a gitlab-ci.. err, azure-pipeline.yaml :-)  
+
+## Docker Images - No Inet Access
+Example of getting images on a system with no Internet Access, and no local registry (yet).  
+  
+  
+On system with Inet Access, get the image:  
+```docker pull portainer/portainer```  
+save the image to a tarball:  
+```docker image save -o portainer.tar```  
+Copy the image to remote host (no dockerhub access), and load the image:  
+```docker load -i portainer.tar```  
