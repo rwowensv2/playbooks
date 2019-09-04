@@ -33,4 +33,17 @@
       tags:
         - join
     
+    - name: firewall trusted
+      firewalld:
+        zone: trusted
+        interface: docker0
+        permanent: yes
+        state: enabled
+      tags: fwd
+    - firewalld:
+        zone: trusted
+        interface: docker_gwbridge
+        permanent: yes
+        state: enabled
+      tags: fwd
 
