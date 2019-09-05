@@ -7,13 +7,13 @@ After=network.target
 User=etcd
 Type=notify
 Environment=ETCD_DATA_DIR=/var/lib/etcd
-Environment=ETCD_NAME=dqldkrie01srv
+Environment=ETCD_NAME=etcd01srv
 ExecStart=/usr/local/bin/etcd --name ${ETCD_NAME} --initial-advertise-peer-urls http://192.168.1.80:2380 \
   --listen-peer-urls http://0.0.0.0:2380 \
   --listen-client-urls http://0.0.0.0:2379 \
   --advertise-client-urls http://192.168.1.80:2379 \
   --initial-cluster-token etcd-cluster-1 \
-  --initial-cluster dqldkrie01srv=http://192.168.1.80:2380,dqldkrie02srv=http://192.168.1.81:2380,dqldkrie03srv=http://192.168.1.86:2380 \
+  --initial-cluster etcd01srv=http://192.168.1.80:2380,etcd02srv=http://192.168.1.81:2380,etcd03srv=http://192.168.1.86:2380 \
   --initial-cluster-state new \
   --heartbeat-interval 1000 \
   --election-timeout 5000
