@@ -191,18 +191,43 @@ sudo docker service create \
 docker service create \
     --name traefik \
     --publish 80:80 --publish 8080:8080 \
+    --placement-pref 'spread=node.labels.environment' \
     --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
-    --network traefik-net \
     traefik \
-    storeconfig \
     --docker \
     --docker.swarmMode \
     --docker.domain=traefik \
+    --docker.network=traefik-net \
     --docker.watch \
     --api \
     --etcd \
-    --etcd.endpoint=127.0.0.1:2379 \
+    --etcd.endpoint=172.17.0.1:2379 \
     --etcd.watch=true \
     --etcd.prefix="/traefik" \
     --etcd.useAPIV3=true
-    ```
+    storeconfig
+```  
+
+```
+docker service create \
+    --name traefik \
+    --publish 80:80 \
+    --publish 8080:8080 \
+    --placement-pref 'spread=node.labels.environment' \
+    --replicas-max-per-node 1 \
+    --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
+    traefik \
+    --docker \
+    --docker.swarmMode \
+    --docker.domain=traefik \
+    --docker.network=traefik-net \
+    --docker.watch \
+    --api \
+    --etcd \
+    --etcd.endpoint=172.17.0.1:2379 \
+    --etcd.watch=true \
+    --etcd.prefix="/traefik" \
+    --etcd.useAPIV3=true \
+    storeconfig
+```  
+

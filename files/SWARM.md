@@ -78,3 +78,7 @@ LimitNOFILE=40000
 
 [Install]
 ```
+# node
+```
+docker node update --label-add environment=qa nodename
+```
