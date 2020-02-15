@@ -14,3 +14,9 @@ Inspect is deprecated, use `docker_swarm_info`.  Below is an example of extracti
     - debug:
         var: result.swarm_facts.JoinTokens.Worker
 ```
+
+# reminder commands
+```
+docker node inspect  
+docker node update
+```
