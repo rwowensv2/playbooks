@@ -1,0 +1,23 @@
+---
+- name: firewalld
+  hosts: swarm
+  become: yes
+  become_method: sudo
+  become_user: root
+
+  tasks:
+    - name: firewall swarm jenkins
+      firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled
+      with_items:
+        - 2377/tcp
+        - 2379/tcp
+        - 2380/tcp
+        - 7946/tcp
+        - 7946/udp
+        - 4789/udp
+        - 9000/tcp
+        - 8080/tcp
+        - 80/tcp
