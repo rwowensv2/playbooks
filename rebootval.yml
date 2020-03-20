@@ -1,6 +1,6 @@
 ---
-    # Bring up rmq in correct order post patching.
-    # 
+    # This is just a test of restarting cluster ha hosts, utilizing docker
+    # service as a test.
     - name: Reboot Validation
       hosts: swarm
       become: yes
