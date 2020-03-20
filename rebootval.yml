@@ -19,7 +19,7 @@
           when: role is undefined
 
         - pause:
-            seconds: 15
+            seconds: 10
           
         - name: Restart Master
           command: /sbin/shutdown -r
