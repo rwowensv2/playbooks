@@ -3,12 +3,12 @@
     # 
     - name: Reboot Validation
       hosts: swarm
-      become: no
+      become: yes
       become_method: sudo
       become_user: root
-      gather_facts: no
-      vars_files:
-        - "~/vault.yaml"
+      gather_facts: yes
+#      vars_files:
+#        - "~/vault.yaml"
     
       tasks:
         - name: stop slaves
@@ -17,7 +17,10 @@
             enabled: no
             state: stopped
           when: role is undefined
-    
+
+        - pause:
+            seconds: 5
+          
         - name: Restart Master
           command: /sbin/shutdown -r
           # async is set to 1 second for ansible to pause for reboot and moved to the next task
@@ -41,6 +44,7 @@
           systemd:
             name: docker.service
             state: started
+          when: role is defined
     
         - name: Validate Master Service
           wait_for:
@@ -50,7 +54,7 @@
             timeout: 45
             sleep: 2
             delay: 5
-#          tags: ['never', 'validate']
+          when: role is defined
 
         - name: Restart Slaves 
           command: /sbin/shutdown -r 
