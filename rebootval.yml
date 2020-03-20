@@ -1,0 +1,85 @@
+---
+    # Bring up rmq in correct order post patching.
+    # 
+    - name: Reboot Validation
+      hosts: swarm
+      become: no
+      become_method: sudo
+      become_user: root
+      gather_facts: no
+      vars_files:
+        - "~/vault.yaml"
+    
+      tasks:
+        - name: stop slaves
+          systemd:
+            name: docker.service
+            enabled: no
+            state: stopped
+          when: role is undefined
+    
+        - name: Restart Master
+          command: /sbin/shutdown -r
+          # async is set to 1 second for ansible to pause for reboot and moved to the next task
+          # so it doesn't cause an error.
+          async: 1
+          # poll is set to 0, meaning no validation.
+          poll: 0
+          ignore_errors: yes
+          when: role is defined
+    
+        - name: Waitfor Master
+          wait_for_connection:
+            # https://docs.ansible.com/ansible/latest/modules/wait_for_connection_module.html
+            connect_timeout: 5
+            sleep: 5
+            delay: 30
+            timeout: 300
+          when: role is defined
+
+        - name: Start Master Service
+          systemd:
+            name: docker.service
+            state: started
+    
+        - name: Validate Master Service
+          wait_for:
+            # https://docs.ansible.com/ansible/latest/modules/wait_for_module.html
+            host: 0.0.0.0
+            port: 8000
+            timeout: 45
+            sleep: 2
+            delay: 5
+#          tags: ['never', 'validate']
+
+        - name: Restart Slaves 
+          command: /sbin/shutdown -r 
+          async: 1
+          poll: 0
+          ignore_errors: yes
+          when: role is undefined
+
+        - name: Waitfor Slaves
+          wait_for_connection:
+            # https://docs.ansible.com/ansible/latest/modules/wait_for_connection_module.html
+            connect_timeout: 5
+            sleep: 5
+            delay: 30
+            timeout: 300
+          when: role is undefined
+
+        - name: start slaves
+          systemd:
+            name: docker.service
+            state: started
+          when: role is undefined            
+
+        - name: Validate Slave Services
+          wait_for:
+            # https://docs.ansible.com/ansible/latest/modules/wait_for_module.html
+            host: 0.0.0.0
+            port: 8000
+            timeout: 45
+            sleep: 2
+            delay: 5
+          when: role is undefined
