@@ -1,0 +1,65 @@
+---
+- name: portainer
+  hosts: swarm
+  become: yes
+  become_method: sudo
+  become_user: root
+
+  vars_files:
+    - ~/vault.yml
+
+  vars:
+    - ansible_ssh_user: "{{ me }}"
+
+  tasks:
+    - name: create portainer network
+      docker_network:
+        name: portainer_agent_network
+        driver: overlay
+        attachable: yes
+
+    - name: create portainer volume
+      docker_volume:
+        name: portainer-data
+
+    - name: create portainer agent service
+      docker_swarm_service:
+        name: portainer_agent
+        image: portainer/agent:latest
+        networks:
+          - portainer_agent_network
+        mode: global
+        mounts:
+          - source: //var/run/docker.sock
+            target: /var/run/docker.sock
+            type: bind
+          - source: //var/lib/docker/volumes
+            target: /var/lib/docker/volumes
+            type: bind
+        labels:
+          traefik.enable: "false"
+     # when: role is defined and role == "leader"
+     
+    - name: create portainer management service
+      docker_swarm_service:
+        name: portainer
+        image: portainer:latest
+        networks:
+          - portainer_agent_network
+          - traefik-net
+        replicas: 1
+        command: /portainer -H tcp://tasks.portainer_agent:9001 --tlsskipverify
+        placement:
+          constraints:
+            - node.role == manager
+        mounts:
+          - source: portainer-data
+            target: /data
+            type: volume
+        labels:
+          traefik.docker.network: "traefik-net"
+          traefik.http.routers.portainer.entrypoints: "web"
+          traefik.http.routers.portainer.rule: "Host(`portainer.owens.dev`)"
+          traefik.http.services.portainer-service.loadbalancer.server.port: "9000"
+      #when: role is defined and role == "leader"
+
