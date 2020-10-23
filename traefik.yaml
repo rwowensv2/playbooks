@@ -1,8 +1,8 @@
 ---
 - name: traefik
-  hosts: "{{ var_hosts }}"
+  hosts: swarm
   become: yes
-  become_method: su
+  become_method: sudo
   become_user: root
     
   vars_files:
@@ -10,7 +10,6 @@
 
   vars:
     - ansible_ssh_user: "{{ me }}"
-    - ansible_become_pass: "{{ root_remote }}"
 
   tasks:
     - name: create cert and config directories
@@ -26,7 +25,6 @@
       template:
         src: ./templates/{{ item.template }}
         dest: /mnt/traefik-configs/certs-traefik.yml
-      # when: "{{ item.when }}"
       with_items:
         - template: "certs-traefik.j2"
 
@@ -39,13 +37,12 @@
       with_fileglob:
         - "./certs/*.crt"
     - name: copy ll traefik keys
-        copy:
-          src: "{{ item }}"
-          dest: /mnt/traefik-certs
-#             decrypt: yes
-          mode: 0400
-        with_fileglob:
-          - "./certs/*.key"
+      copy:
+        src: "{{ item }}"
+        dest: /mnt/traefik-certs
+        mode: 0400
+      with_fileglob:
+        - "./certs/*.key"
 
     - name: create traefik-net networks
       docker_network:
