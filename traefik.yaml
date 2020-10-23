@@ -1,115 +1,114 @@
 ---
-    - name: traefik
-      hosts: "{{ var_hosts }}"
-      become: yes
-      become_method: su
-      become_user: root
+- name: traefik
+  hosts: "{{ var_hosts }}"
+  become: yes
+  become_method: su
+  become_user: root
     
-      vars_files:
-        - ~/vault.yml
-    
-      vars:
-        - ansible_ssh_user: "{{ me }}"
-        - ansible_become_pass: "{{ root_remote }}"
-    
-      tasks:
-        - name: create cert and config directories
-          file:
-            path: /mnt/{{ item }}
-            state: directory
-            mode: '0755'
-          with_items:
-            - traefik-certs
-            - traefik-configs
-    
-        - name: deploy traefik-certs.yml config
-          template:
-            src: ./templates/{{ item.template }}
-            dest: /mnt/traefik-configs/certs-traefik.yml
-          # when: "{{ item.when }}"
-          with_items:
-            - template: "certs-traefik.j2"
-    
-        - name: copy ll traefik certs
-          copy:
-            src: "{{ item }}"
-            dest: /mnt/traefik-certs
-#            decrypt: yes
-            mode: 0444
-          with_fileglob:
-            - "./certs/*.crt"
+  vars_files:
+    - ~/vault.yml
 
-        - name: copy ll traefik keys
-            copy:
-              src: "{{ item }}"
-              dest: /mnt/traefik-certs
-#              decrypt: yes
-              mode: 0400
-            with_fileglob:
-              - "./certs/*.key"
+  vars:
+    - ansible_ssh_user: "{{ me }}"
+    - ansible_become_pass: "{{ root_remote }}"
+
+  tasks:
+    - name: create cert and config directories
+      file:
+        path: /mnt/{{ item }}
+        state: directory
+        mode: '0755'
+      with_items:
+        - traefik-certs
+        - traefik-configs
+
+    - name: deploy traefik-certs.yml config
+      template:
+        src: ./templates/{{ item.template }}
+        dest: /mnt/traefik-configs/certs-traefik.yml
+      # when: "{{ item.when }}"
+      with_items:
+        - template: "certs-traefik.j2"
+
+    - name: copy ll traefik certs
+      copy:
+        src: "{{ item }}"
+        dest: /mnt/traefik-certs
+#           decrypt: yes
+        mode: 0444
+      with_fileglob:
+        - "./certs/*.crt"
+    - name: copy ll traefik keys
+        copy:
+          src: "{{ item }}"
+          dest: /mnt/traefik-certs
+#             decrypt: yes
+          mode: 0400
+        with_fileglob:
+          - "./certs/*.key"
+
+    - name: create traefik-net networks
+      docker_network:
+        name: traefik-net
+        driver: overlay
+        attachable: yes
     
-        - name: create traefik-net networks
-          docker_network:
-            name: traefik-net
-            driver: overlay
-            attachable: yes
-    
-        - name: create traefik swarm service
-          docker_swarm_service:
-            name: traefikv2
-            image: traefik:v2.0
-            networks:
-              - traefik-net
-            replicas: 1
-            args: 
-              # Enable API and Dashboard UI
-              - "--api"
-              - "--api.insecure=true"
-              # Enable the Docker provider
-              - "--providers.docker"
-              - "--providers.docker.swarmmode=true"
-              - "--providers.docker.watch"
-              # Enable the File provider
-              - "--providers.file.directory=/etc/traefik/dynamic"
-              # Configure Entrypoints
-              - "--entryPoints.web.address=:80"
-         #
-         # https://community.traefik.io/t/tls-minversion-entrypoint-is-not-working-properly-in-traefik-1-7-26/7598/2
-         #     - "--entryPoints.websecure.address=:443 TLS.MinVersion=VersionTLS12"
-         #     TLS.MinVersion:VersionTLS12
-         #  syntax issues w/ above
-         #
-         #
-              - "--entryPoints.websecure.address=:443"
-              # Enable Prometheus metrics and logging
-              - "--entryPoints.metrics.address=:9181"
-              - "--metrics.prometheus"
-              - "--metrics.prometheus.entryPoint=metrics"
-              - "--log"
-              - "--accessLog"
-            publish:
-              - published_port: 80
-                target_port: 80
-              - published_port: 443
-                target_port: 443
-              - published_port: 8080
-                target_port: 8080
-              - published_port: 9181
-                target_port: 9181
-            mounts:
-              - source: /var/run/docker.sock
-                target: /var/run/docker.sock
-                type: bind
-              # Mount that contains generated certs
-              - source: /mnt/traefik-certs/
-                target: /etc/certs/
-                type: bind
-              # Mount that contains dynamic configs
-              - source: /mnt/traefik-configs/certs-traefik.yml
-                target: /etc/traefik/dynamic/certs-traefik.yml
-                type: bind
-            placement:
-              constraints:
-                - node.role == manager
-          when: role is defined and role == "leader"
+    - name: create traefik swarm service
+      docker_swarm_service:
+        name: traefikv2
+        image: traefik:v2.0
+        networks:
+          - traefik-net
+        replicas: 1
+        args: 
+          # Enable API and Dashboard UI
+          - "--api"
+          - "--api.insecure=true"
+          # Enable the Docker provider
+          - "--providers.docker"
+          - "--providers.docker.swarmmode=true"
+          - "--providers.docker.watch"
+          # Enable the File provider
+          - "--providers.file.directory=/etc/traefik/dynamic"
+          # Configure Entrypoints
+          - "--entryPoints.web.address=:80"
+     #
+     # https://community.traefik.io/t/tls-minversion-entrypoint-is-not-working-properly-in-traefik-1-7-26/7598/2
+     #     - "--entryPoints.websecure.address=:443 TLS.MinVersion=VersionTLS12"
+     #     TLS.MinVersion:VersionTLS12
+     #  syntax issues w/ above
+     #
+     #
+          - "--entryPoints.websecure.address=:443"
+          # Enable Prometheus metrics and logging
+          - "--entryPoints.metrics.address=:9181"
+          - "--metrics.prometheus"
+          - "--metrics.prometheus.entryPoint=metrics"
+          - "--log"
+          - "--accessLog"
+        publish:
+          - published_port: 80
+            target_port: 80
+          - published_port: 443
+            target_port: 443
+          - published_port: 8080
+            target_port: 8080
+          - published_port: 9181
+            target_port: 9181
+        mounts:
+          - source: /var/run/docker.sock
+            target: /var/run/docker.sock
+            type: bind
+          # Mount that contains generated certs
+          - source: /mnt/traefik-certs/
+            target: /etc/certs/
+            type: bind
+          # Mount that contains dynamic configs
+          - source: /mnt/traefik-configs/certs-traefik.yml
+            target: /etc/traefik/dynamic/certs-traefik.yml
+            type: bind
+        placement:
+          constraints:
+            - node.role == manager
+      when: role is defined and role == "leader"
     
