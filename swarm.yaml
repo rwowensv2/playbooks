@@ -27,8 +27,9 @@
       docker_swarm:
         state: join
         advertise_addr: "{{ ansible_default_ipv4.address}}"
-        join_token: "{{ hostvars['swarm1.owens.dev']['token']['swarm_facts']['JoinTokens']['Worker'] }}"
-        remote_addrs: [ '10.3.234.100:2377' ]
+        join_token: "{{ hostvars['vbox1.owens.dev']['token']['swarm_facts']['JoinTokens']['Worker'] }}"
+        # fix:  grab and register leader ansible_default_ipv4.address for below
+        remote_addrs: [ '192.168.1.201:2377' ]
       when: role is undefined        
       tags:
         - join
