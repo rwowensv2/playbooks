@@ -25,7 +25,7 @@
     - name: create portainer agent service
       docker_swarm_service:
         name: portainer_agent
-        image: portainer/agent:latest
+        image: portainer/agent
         networks:
           - portainer_agent_network
         mode: global
@@ -43,7 +43,7 @@
     - name: create portainer management service
       docker_swarm_service:
         name: portainer
-        image: portainer:latest
+        image: portainer/portainer
         networks:
           - portainer_agent_network
           - traefik-net
@@ -58,7 +58,8 @@
             type: volume
         labels:
           traefik.docker.network: "traefik-net"
-          traefik.http.routers.portainer.entrypoints: "web"
+          traefik.http.routers.portainer.entrypoints: "websecure"
+          traefik.http.routers.portainer.tls: "true"
           traefik.http.routers.portainer.rule: "Host(`portainer.owens.dev`)"
           traefik.http.services.portainer-service.loadbalancer.server.port: "9000"
       #when: role is defined and role == "leader"
