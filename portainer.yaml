@@ -59,8 +59,9 @@
         labels:
           traefik.docker.network: "traefik-net"
           traefik.http.routers.portainer.entrypoints: "websecure"
-          traefik.http.routers.portainer.tls: "true"
           traefik.http.routers.portainer.rule: "Host(`portainer.owens.dev`)"
+          traefik.http.routers.portainer.tls: "true"
+#          traefik.http.routers.portainer.tls.options.minVersion: "VersionTLS12"
           traefik.http.services.portainer-service.loadbalancer.server.port: "9000"
       #when: role is defined and role == "leader"
 
