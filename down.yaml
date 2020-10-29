@@ -6,6 +6,11 @@
   become_user: root
 
   tasks:
+    - name: stop swarm
+      systemd:
+        name: docker.service
+        state: stopped
+
     - name: shutdown
       command: /sbin/shutdown -h now
 
