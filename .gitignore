@@ -3,3 +3,4 @@
 docker/*
 *ignore
 certs/*
+files/rke*

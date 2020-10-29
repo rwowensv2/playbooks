@@ -1,0 +1,21 @@
+---
+- name: rancher
+  hosts: rancher
+  become: yes
+  become_method: sudo
+  become_user: root
+
+  vars_files:
+    - ~/vault.yaml
+
+  vars:
+    - ansible_ssh_user: "{{ me }}"
+
+  tasks:
+    - name: copy binary
+      copy:
+        src: ./files/rke_linux-amd64
+        dest: /usr/local/bin/rke
+        owner: root
+        group: root
+        mode: '0755'
