@@ -12,6 +12,19 @@
     - ansible_ssh_user: "{{ me }}"
 
   tasks:
+# set up keys
+    - name: create user 
+      group:
+        name: rancher
+        state: present
+        gid: 1099
+    - user:
+        name: rancher
+        shell: /bin/bash
+        uid: 1099
+        group: rancher
+        groups: docker
+
     - name: copy binary
       copy:
         src: ./files/rke_linux-amd64
@@ -19,3 +32,11 @@
         owner: root
         group: root
         mode: '0755'
+
+    - name: symlink
+      file:
+        src: /usr/local/bin/rke
+        dest: /usr/bin/rke
+        owner: root 
+        group: root 
+        state: link

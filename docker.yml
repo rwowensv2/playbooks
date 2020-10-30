@@ -1,8 +1,8 @@
 ---
 - name: docker
-  hosts: swarm
+  hosts: rancher
   become_user: root
-  become_method: su
+  become_method: sudo
   become: yes
 
   vars_files:
@@ -10,8 +10,8 @@
   
   vars:
     - ansible_ssh_user: "{{ me }}"
-    - ansible_become_pass: "{{ root_vbox }}"
-    - composeurl: "https://github.com/docker/compose/releases/download/1.24.1"
+#    - ansible_become_pass: "{{ root_vbox }}"
+    - composeurl: "https://github.com/docker/compose/releases/download/1.27.4"
 #    dockerurl: https://download.docker.com/linux/centos/7/x86_64/stable/Packages/
 #    dockerurl: http://10.10.10.10/custom/docker
     - dockerce: "docker-ce-19.03.4-3.el7.x86_64.rpm"
