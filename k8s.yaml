@@ -1,0 +1,37 @@
+---
+- name: kubernetes
+  hosts: rancher
+  become: yes
+  become_method: sudo
+  become_user: root
+
+  vars_files:
+    - ~/vault.yaml
+
+  vars:
+    - ansible_ssh_user: "{{ me }}"
+
+  tasks:
+    - name: add k8rs repo 
+      copy: 
+        src: ./files/kubernetes.repo 
+        dest: /etc/yum.repos.d/kubernetes.repo 
+        mode: 0644
+      tags: k8s
+
+    - name: install kubectl 
+      yum:
+        name: kubectl
+        state: present
+      tags: k8s
+
+    - name: install helm
+      copy:
+        src: ./files/helm
+        dest: /usr/bin/helm
+        mode: '0755'
+      tags: helm
+  
+    - name: helm rancher repo 
+      command: /usr/bin/helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+      tags: helm
