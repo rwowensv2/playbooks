@@ -4,3 +4,4 @@ docker/*
 *ignore
 certs/*
 files/rke*
+files/helm
