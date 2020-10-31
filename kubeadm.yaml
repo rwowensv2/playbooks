@@ -58,7 +58,7 @@
         src: ./files/helm
         dest: /usr/bin/helm
         mode: '0755'
-      tags: [ never, helm]
+      tags: [ never, helm ]
   
     - name: helm rancher repo 
       command: /usr/bin/helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
