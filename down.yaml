@@ -1,5 +1,5 @@
 ---
-- hosts: swarm
+- hosts: rancher
   gather_facts: no
   become: yes
   become_method: sudo
@@ -10,6 +10,7 @@
       systemd:
         name: docker.service
         state: stopped
+      ignore_errors: true
 
     - name: shutdown
       command: /sbin/shutdown -h now
