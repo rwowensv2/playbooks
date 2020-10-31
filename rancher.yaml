@@ -1,5 +1,5 @@
 ---
-- name: rancher
+- name: rancher rke
   hosts: rancher
   become: yes
   become_method: sudo
