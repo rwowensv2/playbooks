@@ -50,6 +50,8 @@
         state: present
         disable_excludes: kubernetes
     
+    # not started, reboot selinux required, will roll that 
+    # in later, reboot wait_for validate.
     - name: enable kubelet 
       systemd:
         name: kubelet
