@@ -1,4 +1,5 @@
 ---
+# old
 - name: kubernetes
   hosts: rancher
   become: yes
@@ -17,7 +18,7 @@
         src: ./files/kubernetes.repo 
         dest: /etc/yum.repos.d/kubernetes.repo 
         mode: 0644
-      tags: k8s
+        tags: k8s
 
     - name: install kubectl 
       yum:

@@ -1,0 +1,65 @@
+---
+# https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/  
+# note, docker first
+- name: kubernetes
+  hosts: rancher
+  become: yes
+  become_method: sudo
+  become_user: root
+
+  vars_files:
+    - ~/vault.yaml
+
+  vars:
+    - ansible_ssh_user: "{{ me }}"
+
+  tasks:
+    - name: firewalld
+      firewalld:
+        port: "{{ item }}"
+        permanent: true
+        state: enabled
+      with_items:
+        - 6443/tcp
+        - 2379-2380/tcp
+        - 10250-10252/tcp
+        - 30000-32767/tcp
+
+    - name: iptables bridged traff
+      sysctl:
+        name: "{{ item }}"
+        value: 1
+        state: present
+      with_items:
+        - net.bridge.bridge-nf-call-iptables
+        - net.bridge.bridge-nf-call-ip6tables
+
+    - name: disable SELINUX
+      selinux:
+        state: disabled
+
+    - name: add kubernetes repo 
+      copy: 
+        src: ./files/kubernetes.repo 
+        dest: /etc/yum.repos.d/kubernetes.repo 
+        mode: 0644
+
+    - name: install kublet kubeadm kubectl
+      yum:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - kublet
+        - kubeadm
+        - kubectl
+
+    - name: install helm
+      copy:
+        src: ./files/helm
+        dest: /usr/bin/helm
+        mode: '0755'
+      tags: [ never, helm]
+  
+    - name: helm rancher repo 
+      command: /usr/bin/helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+      tags: [ never, helm ]
