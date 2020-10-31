@@ -14,6 +14,8 @@
 
     - name: shutdown
       command: /sbin/shutdown -h now
+      async: 1
+      poll: 0
 
-    - name: wait go down
-      local_action: wait_for host={{ ansible_ssh_host }} port=22 state=stopped
+#    - name: wait go down
+#      local_action: wait_for host={{ ansible_ssh_host }} port=22 state=stopped
