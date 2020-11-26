@@ -21,6 +21,7 @@
     - name: create portainer volume
       docker_volume:
         name: portainer-data
+      when: role is defined and role == "leader"
 
     - name: create portainer agent service
       docker_swarm_service:
@@ -38,7 +39,7 @@
             type: bind
         labels:
           traefik.enable: "false"
-     # when: role is defined and role == "leader"
+      when: role is defined and role == "leader"
      
     - name: create portainer management service
       docker_swarm_service:
@@ -49,6 +50,7 @@
           - traefik-net
         replicas: 1
         command: /portainer -H tcp://tasks.portainer_agent:9001 --tlsskipverify
+#        command: /portainer -H tcp://tasks.portainer_agent:9001
         placement:
           constraints:
             - node.role == manager
@@ -59,8 +61,10 @@
         labels:
           traefik.docker.network: "traefik-net"
           traefik.http.routers.portainer.entrypoints: "websecure"
+#          traefik.http.routers.portainer.entrypoints: "web"
           traefik.http.routers.portainer.rule: "Host(`portainer.owens.dev`)"
           traefik.http.routers.portainer.tls: "true"
+#          traefik.http.routers.portainer.tls: "false"
           traefik.http.services.portainer-service.loadbalancer.server.port: "9000"
-      #when: role is defined and role == "leader"
+      when: role is defined and role == "leader"
 

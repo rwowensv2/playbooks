@@ -1,5 +1,5 @@
 ---
-- hosts: rancher
+- hosts: swarm
   gather_facts: no
   become: yes
   become_method: sudo
@@ -17,5 +17,11 @@
       async: 1
       poll: 0
 
+    - name: restart swarm
+      systemd:
+        name: docker.service
+        state: restarted
+      tags:
+        - restart
 #    - name: wait go down
 #      local_action: wait_for host={{ ansible_ssh_host }} port=22 state=stopped

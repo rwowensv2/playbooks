@@ -1,0 +1,17 @@
+---
+- hosts: swarm
+  become: yes
+  become_method: sudo
+  become_user: root 
+
+  vars_files:
+    - ~/vault.yaml
+
+  tasks:
+    - name: Prune everything
+      docker_prune:
+        containers: yes
+        images: yes
+        networks: yes
+        volumes: yes
+        builder_cache: yes

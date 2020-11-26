@@ -28,18 +28,19 @@
 
     - name: create nginx service
       docker_swarm_service:
-        name: myweb
+        name: web
         image: nginx
         networks:
           - traefik-net
         replicas: 1
-        mounts:
-          - source: /usr/share/www
-            target: /usr/share/nginx/html
-            type: bind
+#        mounts:
+#          - source: /usr/share/www
+#            target: /usr/share/nginx/html
+#            type: bind
         labels:
           traefik.docker.network: "traefik-net"
-  #        traefik.http.routers.nginx.entrypoints: "websecure"
+  #        traefik.enable: "true"
+          traefik.http.routers.nginx.entrypoints: "web"
           traefik.http.routers.nginx.rule: "Host(`nginx.owens.dev`)"
   #        traefik.http.routers.nginx.tls: "true"
           traefik.http.services.nginx.loadbalancer.server.port: "80"

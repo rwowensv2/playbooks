@@ -50,6 +50,7 @@
         name: traefik-net
         driver: overlay
         attachable: yes
+      when: role is defined and role == "leader"
 
     - name: create traefik swarm service
       docker_swarm_service:
@@ -70,13 +71,6 @@
           - "--providers.file.directory=/etc/traefik/dynamic"
           # Configure Entrypoints
           - "--entryPoints.web.address=:80"
-     #
-     # https://community.traefik.io/t/tls-minversion-entrypoint-is-not-working-properly-in-traefik-1-7-26/7598/2
-     #     - "--entryPoints.websecure.address=:443 TLS.MinVersion=VersionTLS12"
-     #     TLS.MinVersion:VersionTLS12
-     #  syntax issues w/ above
-     #
-     #
           - "--entryPoints.websecure.address=:443"
           # Enable Prometheus metrics and logging
           - "--entryPoints.metrics.address=:9181"
