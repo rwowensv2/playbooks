@@ -33,6 +33,11 @@
       when: role is undefined        
       tags:
         - join
+
+    - name: firwalld disable
+      systemd:
+        name: firewalld
+        enabled: no
     
     - name: firewall trusted
       firewalld:
@@ -40,11 +45,11 @@
         interface: docker0
         permanent: yes
         state: enabled
-      tags: fwd
+      tags: ['never','fwd']
     - firewalld:
         zone: trusted
         interface: docker_gwbridge
         permanent: yes
         state: enabled
-      tags: fwd
+      tags: ['never','fwd']
 

@@ -17,6 +17,7 @@
         name: portainer_agent_network
         driver: overlay
         attachable: yes
+      when: role is defined and role == "leader"
 
     - name: create portainer volume
       docker_volume:

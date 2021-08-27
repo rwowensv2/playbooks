@@ -12,6 +12,7 @@
         permanent: yes
         state: enabled
       with_items:
+        - 2376/tcp
         - 2377/tcp
         - 2379/tcp
         - 2380/tcp
@@ -22,3 +23,14 @@
         - 8080/tcp
         - 443/tcp
         - 80/tcp
+ 
+    - name: restart
+      systemd: 
+        name: firewalld
+        state: restarted
+
+    - name: stop
+      systemd:
+        name: firewalld
+        state: stopped
+      tags: ['never','stop']

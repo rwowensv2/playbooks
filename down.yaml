@@ -16,12 +16,79 @@
       command: /sbin/shutdown -h now
       async: 1
       poll: 0
+      tags:
+        - ['never','shutdown']
 
     - name: restart swarm
       systemd:
         name: docker.service
         state: restarted
       tags:
-        - restart
+        - ['never','restart']
+#
+# Disable Docker
+    - name: disable docker
+      systemd:
+        name: docker.service
+        state: stopped
+        enabled: no
+        daemon_reload: yes
+      tags:
+        - ['never','disable_docker']
+
+    - name: disable socket
+      systemd:
+        name: docker.socket
+        state: stopped
+        enabled: no
+        daemon_reload: yes
+      tags:
+        - ['never','disable_docker']
+
+    - name: disable containerd
+      systemd:
+        name: containerd
+        state: stopped
+        enabled: no
+        daemon_reload: yes
+      tags:
+        - ['never','disable_docker']
+
+#
+# Enabled Docker
+    - name: enable containerd
+      systemd:
+        name: containerd
+        state: started
+        enabled: yes
+        daemon_reload: yes
+      tags:
+        - ['never','enable_docker']
+
+    - name: enable socket
+      systemd:
+        name: docker.socket
+        state: started
+        enabled: yes
+        daemon_reload: yes
+      tags:
+        - ['never','enable_docker']
+
+    - name: enable docker
+      systemd:
+        name: docker.service
+        state: started
+        enabled: yes
+        daemon_reload: yes
+      tags:
+        - ['never','enable_docker']
+
+#
+# 
+    - name: swarm started
+      systemd:
+        name: docker.service
+        state: started
+      tags: ['never','started']
 #    - name: wait go down
 #      local_action: wait_for host={{ ansible_ssh_host }} port=22 state=stopped
