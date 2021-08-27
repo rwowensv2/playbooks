@@ -1,8 +1,8 @@
 ---
 # Presuppose docker.yml
-#
+# https://ralph.blog.imixs.com/2019/11/17/from-docker-swarm-to-kubernetes-in-the-easy-way/
 - name: kubernetes
-  hosts: rancher
+  hosts: swarm
   become: yes
   become_method: sudo
   become_user: root
