@@ -2,7 +2,7 @@
 # Presuppose docker.yml
 # https://ralph.blog.imixs.com/2019/11/17/from-docker-swarm-to-kubernetes-in-the-easy-way/
 - name: kubernetes
-  hosts: node
+  hosts: vbox1.owens.dev
   become: yes
   become_method: sudo
   become_user: root
@@ -12,6 +12,7 @@
 
   vars:
     - ansible_ssh_user: "{{ me }}"
+    - helm: https://get.helm.sh/helm-v3.6.3-linux-amd64.tar.gz
 
   tasks:
     - name: K8s Repo 
@@ -43,13 +44,22 @@
         daemon_reload: yes
       tags: dockerfix
 
-#    - name: install helm
-#      copy:
-#        src: ./files/helm
-#        dest: /usr/bin/helm
-#        mode: '0755'
-#      tags: helm
-#  
+    - name: install helm
+      unarchive:
+        src: "{{ helm }}"
+        dest: /usr/local/bin
+        mode: '0755'
+        remote_src: yes
+      tags: helm
+    - file:
+        src: /usr/local/bin/linux-amd64/helm
+        dest: /usr/local/bin/helm
+        state: link
+      tags: helm
+    - command: /usr/local/bin/helm repo add traefik https://helm.traefik.io/traefik
+      tags: helm
+    - command: /usr/local/bin/helm repo update
+      tags: helm
 #    - name: helm rancher repo 
 #      command: /usr/bin/helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
 #      tags: helm
