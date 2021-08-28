@@ -230,4 +230,6 @@ docker service create \
     --etcd.useAPIV3=true \
     storeconfig
 ```  
-
+## K8s
+[Simple](https://ralph.blog.imixs.com/2019/11/17/from-docker-swarm-to-kubernetes-in-the-easy-way/)  
+[cgroup error docker driver](https://sysnet4admin.gitbook.io/k8s/trouble-shooting/cluster-build/kubelet-is-not-properly-working-on-1.22-version)  

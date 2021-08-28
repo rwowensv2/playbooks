@@ -31,6 +31,16 @@
         name: kubeadm
         state: present
 
+    - name: docker driver repl
+      copy:
+        src: ./file/daemon.json
+        dest: /etc/docker/daemon.json
+    - systemd:
+        name: docker
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
+        
 #    - name: install helm
 #      copy:
 #        src: ./files/helm
