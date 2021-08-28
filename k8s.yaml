@@ -2,7 +2,7 @@
 # Presuppose docker.yml
 # https://ralph.blog.imixs.com/2019/11/17/from-docker-swarm-to-kubernetes-in-the-easy-way/
 - name: kubernetes
-  hosts: swarm
+  hosts: node
   become: yes
   become_method: sudo
   become_user: root
@@ -35,12 +35,14 @@
       copy:
         src: ./file/daemon.json
         dest: /etc/docker/daemon.json
+      tags: dockerfix
     - systemd:
         name: docker
         state: restarted
         enabled: yes
         daemon_reload: yes
-        
+      tags: dockerfix
+
 #    - name: install helm
 #      copy:
 #        src: ./files/helm
