@@ -21,6 +21,8 @@ kubernetes   ClusterIP      10.96.0.1      <none>        443/TCP                
 traefik      LoadBalancer   10.96.24.117   <pending>     80:30293/TCP,443:32127/TCP   140m
 
 $ kubectl patch svc traefik -p '{"spec":{"externalIPs":["192.168.1.201"]}}'
+||?
+$ kubectl patch svc traefik -p '{"spec":{"LoadBalancer":{"externalIPs":["192.168.1.201"]}}}'
 
 $ kubectl get -n default services
 NAME         TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)                      AGE
