@@ -160,7 +160,7 @@ sudo docker stack deploy -c docker-compose.yml reverse-proxy
 sudo docker stack ls
 sudo docker stack rm reverse-proxy
 ```
-
+```
 docker-compose.yml 
 version: '3'
 
@@ -174,6 +174,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # So that Traefik can listen to the Docker events
 
+```
 
 
 
