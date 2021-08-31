@@ -1,0 +1,23 @@
+---
+# python rabbithole...
+- name: python3
+  hosts: swarm
+  become: yes
+  become_method: sudo
+  become_user: root
+
+  vars_files:
+    - ~/vault.yaml
+
+  vars:
+    - ansible_ssh_user: "{{ me }}"
+
+  tasks:
+    - name: python3
+      yum:
+        name: python3
+        state: installed
+    - yum:
+        name: libselinux-python3
+        state: installed
+      tags: selinux
