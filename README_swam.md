@@ -97,8 +97,8 @@ docker service create \
   --mount type=bind,source=/usr/share/www,destination=/usr/share/nginx/html \
   --network=tra \
    nginx(:alpine)
-```
 # docker service ps nginxdev (show port info)
+```
 
 # optional
 ```
