@@ -58,10 +58,10 @@ sudo docker service create \
     --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
     --network traefik-net \
     traefik \
-    --docker \
-    --docker.swarmMode \
-    --docker.domain=traefik \
-    --docker.watch \
+    --providers.docker \
+    --providers.docker.swarmMode=true \
+    --providers.docker.domain=traefik \
+    --providers.docker.watch \
     --api
 
 # Service Tests
