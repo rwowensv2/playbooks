@@ -27,10 +27,10 @@ docker service create \
     --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
     --network traefik-net \
     traefik \
-    --docker \
-    --docker.swarmMode \
-    --docker.domain=traefik \
-    --docker.watch \
+    --providers.docker \
+    --providers.docker.swarmMode \
+    --providers.docker.domain=traefik \
+    --providers.docker.watch \
     --api
 ```
 #
@@ -174,6 +174,28 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # So that Traefik can listen to the Docker events
 
+```
+# Ansible Swarm Facts
+Inspect is deprecated, use `docker_swarm_info`.  Below is an example of extracting the worker key for join.  
+
+
+```
+  tasks:
+    - name: inspect
+      docker_swarm_info:
+        nodes: yes
+      register: result
+      # OLD Way
+      # "{{ hostvars['ansible_hostname']['token']['swarm_facts']['JoinTokens']['Worker'] }}"
+      when: role is defined and role == "leader"
+    - debug:
+        var: result.swarm_facts.JoinTokens.Worker
+```
+
+# reminder commands
+```
+docker node inspect  
+docker node update
 ```
 
 
