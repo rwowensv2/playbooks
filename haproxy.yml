@@ -1,0 +1,27 @@
+---
+- name: haproxy stuff
+  hosts: haproxy.owens.dev
+  become: yes
+  become_method: sudo
+  become_user: root
+ 
+  vars_files:
+    ~/vault.yaml
+
+  tasks:
+    - name: firewall
+      firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled
+      with_items:
+        - 80/tcp
+        - 8000/tcp
+        - 8080/tcp
+        - 9000/tcp
+
+# uh wut?
+    - name: uhrestart
+      systemd: 
+        name: firewalld
+        state: restarted
