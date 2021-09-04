@@ -41,81 +41,9 @@ centvbox.owens.dev
 vbox2.owens.dev		
 ```
 
-# Traefik
-```
-#
-# Traefik Host Based 
+# Traefik[Traefik](https://doc.traefik.io/traefik/)
 
-# create overlay network
-docker network create --driver overlay --attachable traefik-net
-
-#
-# Create traefik service
-sudo docker service create \
-    --name traefik \
-    --constraint=node.role==manager \
-    --publish 80:80 --publish 8080:8080 \
-    --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
-    --network traefik-net \
-    traefik \
-    --providers.docker \
-    --providers.docker.swarmMode=true \
-    --providers.docker.domain=traefik \
-    --providers.docker.watch \
-    --api
-
-# Service Tests
-
-## Create nginx basic service
-sudo docker service create \
-  --name nginxdev \
-  --label traefik.port=80 \
-  --network traefik-net \
-  --label traefik.frontend.rule="Host:www.owens.dev" \
-  --detach \
-  nginx
-
-## Nginx Test service prints host (nginxhtml.yml)
-sudo docker service create \
-  --name nginxdev \
-  --mount type=bind,source=/usr/share/www/,destination=/usr/share/nginx/html/ \
-  --label traefik.port=80 \
-  --network traefik-net \
-  --label traefik.frontend.rule="Host:www.owens.dev" \
-  --detach \
-  nginx
-
-## Nginx Test Pathstrip http://mysite.com/test/ will route to Nginx:/
-sudo docker service create \
-  --name nginxpath \
-  --label traefik.port=80 \
-  --network traefik-net \
-  --label traefik.frontend.rule="PathStrip:/test" \
-  --detach \
-  nginx
-
-
-
-#
-# Check it
-sudo docker service ls
-ID                  NAME                MODE                REPLICAS            IMAGE               PORTS
-1vit7x7zd0xj        nginxdev            replicated          2/2                 nginx:latest        
-yn703xe3quw2        traefik             replicated          1/1                 traefik:latest      *:80->80/tcp, *:8080->8080/tcp
-
-
-#
-# Scale the Service
-sudo docker service scale nginxdev="2"
-
-#
-# Check it
-docker service ps nginxdev
-ID                  NAME                IMAGE               NODE                 DESIRED STATE       CURRENT STATE           ERROR               PORTS
-i9scy6y928f2        nginxdev.1          nginx:latest        centvbox.owens.dev   Running             Running 5 minutes ago                       
-p66qahf1ya0h        nginxdev.2          nginx:latest        desk.owens.dev       Running             Running 2 minutes ago                       
-```
-### Traefik HealthCheck
+### Traefik T2R
 ```
 docker service update --label-add traefik.backend.healthcheck.path=/nginx traefik
 docker service update --label-add traefik.backend.healthcheck.interval=5s traefik
@@ -128,7 +56,6 @@ docker service update --label-add traefik.backend.healthcheck.interval=5s traefi
 ## Quick Start
 ```
 docker volume create portainer_data
-
 docker run -d -p 8000:8000 -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer
 ```
 
@@ -136,7 +63,7 @@ docker run -d -p 8000:8000 -p 9000:9000 -v /var/run/docker.sock:/var/run/docker.
 [Cluster](https://github.com/etcd-io/etcd/blob/master/Documentation/op-guide/clustering.md) 
 
 
-## Azure Pipelines
+## Azure Pipelines - OLD
 Figured out so far :-)  
 
 Creating a Azure Devops Account, be prepared to link to an existing GitHub Account (use your Github creds for Azure) and Create a project to link to existing repo.  I linked to Azure to test docker-compose stuff.  
@@ -166,70 +93,8 @@ Copy the image to remote host (no dockerhub access), and load the image:
 ```docker load -i portainer.tar```  
 
 ## Working...  
-```
-sudo docker service create \
-    --name traefik \
-#    --constraint=node.role==manager \
-    --publish 80:80 --publish 8080:8080 \
-    --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
-    --network traefik-net \
-    traefik \
-    --docker \
-    --docker.swarmMode \
-    --docker.domain=traefik \
-    --docker.watch \
-    --storeconfig \
-    --api \
-    --etcd \
-    --etcd.endpoint=127.0.0.1:2379 \
-    --etcd.watch=true \
-    --etcd.prefix="/traefik" \
-    --etcd.useAPI3=true
-```
-...
-```
-docker service create \
-    --name traefik \
-    --publish 80:80 --publish 8080:8080 \
-    --placement-pref 'spread=node.labels.environment' \
-    --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
-    traefik \
-    --docker \
-    --docker.swarmMode \
-    --docker.domain=traefik \
-    --docker.network=traefik-net \
-    --docker.watch \
-    --api \
-    --etcd \
-    --etcd.endpoint=172.17.0.1:2379 \
-    --etcd.watch=true \
-    --etcd.prefix="/traefik" \
-    --etcd.useAPIV3=true
-    storeconfig
-```  
+See subdirectories  
 
-```
-docker service create \
-    --name traefik \
-    --publish 80:80 \
-    --publish 8080:8080 \
-    --placement-pref 'spread=node.labels.environment' \
-    --replicas-max-per-node 1 \
-    --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
-    traefik \
-    --docker \
-    --docker.swarmMode \
-    --docker.domain=traefik \
-    --docker.network=traefik-net \
-    --docker.watch \
-    --api \
-    --etcd \
-    --etcd.endpoint=172.17.0.1:2379 \
-    --etcd.watch=true \
-    --etcd.prefix="/traefik" \
-    --etcd.useAPIV3=true \
-    storeconfig
-```  
 ## K8s
 [Simple](https://ralph.blog.imixs.com/2019/11/17/from-docker-swarm-to-kubernetes-in-the-easy-way/)  
 [cgroup error docker driver](https://sysnet4admin.gitbook.io/k8s/trouble-shooting/cluster-build/kubelet-is-not-properly-working-on-1.22-version)  

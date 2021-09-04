@@ -20,37 +20,31 @@ docker network create --driver overlay --attachable traefik-net
 #
 # Create traefik service
 ```
-docker service create \
-    --name traefik \
-    --constraint=node.role==manager \
-    --publish 80:80 --publish 8080:8080 \
-    --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
-    --network traefik-net \
-    traefik \
-    --providers.docker \
-    --providers.docker.swarmMode \
-    --providers.docker.watch \
-    --api
-```
+swarm/treafikv2.yaml
+```  
 #
 # Create nginx test web
 ```
-docker service create \
-  --name nginxdev \
-  --label traefik.port=80 \
-  --network traefik-net \
-  --label traefik.frontend.rule="Host:www.owens.dev" \
-  --detach \
-  nginx
+swarm/nginxhtml.yaml
+```  
+#
+# Create portainer service
 ```
+swarm/portainer.yaml
+```  
 
 #
 # Check it
 ```
-docker service ls
-ID                  NAME                MODE                REPLICAS            IMAGE               PORTS
-1vit7x7zd0xj        nginxdev            replicated          2/2                 nginx:latest        
-yn703xe3quw2        traefik             replicated          1/1                 traefik:latest      *:80->80/tcp, *:8080->8080/tcp
+# docker service ls
+ID             NAME              MODE         REPLICAS   IMAGE                 PORTS
+wksnwwpw3krl   nginxdev          replicated   1/1        nginx:latest          
+8g1idf0l2qmm   portainer         replicated   1/1        portainer/portainer   
+obbo9exh5k32   portainer_agent   global       3/3        portainer/agent       
+xvi40w1y8ri4   registry          replicated   1/1        registry:2            *:5000->5000/tcp
+ysz40iz8bqss   traefikv2         replicated   1/1        traefik:v2.3.2        *:80->80/tcp, *:443->443/tcp, *:8080->8080/tcp, *:9181->9181/tcp
+60yaqm38ole7   web               replicated   1/1        nginx                 
+
 ```
 
 #
