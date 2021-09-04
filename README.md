@@ -41,7 +41,8 @@ centvbox.owens.dev
 vbox2.owens.dev		
 ```
 
-# Traefik[Traefik](https://doc.traefik.io/traefik/)
+# Traefik   
+[Traefik](https://doc.traefik.io/traefik/)
 
 ### Traefik T2R
 ```
