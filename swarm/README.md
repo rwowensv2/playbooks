@@ -29,7 +29,6 @@ docker service create \
     traefik \
     --providers.docker \
     --providers.docker.swarmMode \
-    --providers.docker.domain=traefik \
     --providers.docker.watch \
     --api
 ```

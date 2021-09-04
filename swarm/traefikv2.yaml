@@ -66,7 +66,7 @@
     - name: create traefik swarm service
       docker_swarm_service:
         name: traefikv2
-        image: traefik:v2.0
+        image: traefik:v2.3.2
         networks:
           - traefik-net
         replicas: 1

@@ -33,10 +33,10 @@
         networks:
           - traefik-net
         replicas: 1
-#        mounts:
-#          - source: /usr/share/www
-#            target: /usr/share/nginx/html
-#            type: bind
+        mounts:
+          - source: /usr/share/www
+            target: /usr/share/nginx/html
+            type: bind
         labels:
           traefik.docker.network: "traefik-net"
   #        traefik.enable: "true"
