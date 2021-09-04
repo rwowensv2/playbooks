@@ -12,7 +12,7 @@
     - ansible_ssh_user: "{{ me }}"
 
   tasks:
-      - name: firewall overlay
+    - name: firewall overlay
       firewalld:
         port: "{{ item }}"
         permanent: yes
