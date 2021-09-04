@@ -14,25 +14,21 @@
   tasks:
     - name: volume dir
       file:
-        path: /usr/share/www
+        path: /usr/share/www2
         state: directory
         owner: root
         group: root 
         mode: 0755
 
     - name: index.html
-      file: 
-        path: /usr/share/www2
-        state: directory
-        mode: '0755'
-    - copy:
+      copy:
         src: ./files/index.html
         dest: /usr/share/www2/index.html
         mode: 0444
 
     - name: create nginx service
       docker_swarm_service:
-        name: web
+        name: webtest2
         image: nginx
         networks:
           - traefik-net

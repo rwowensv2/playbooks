@@ -28,7 +28,7 @@
 
     - name: create nginx service
       docker_swarm_service:
-        name: web
+        name: webtest1
         image: nginx
         networks:
           - traefik-net
