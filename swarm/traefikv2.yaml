@@ -29,32 +29,7 @@
         state: directory
         mode: '0755'
       with_items:
-        - traefik-certs
         - traefik-configs
-
-    - name: deploy traefik-certs.yml config
-      template:
-        src: ./templates/{{ item.template }}
-        dest: /mnt/traefik-configs/certs-traefik.yml
-      with_items:
-        - template: "certs-traefik.j2"
-
-    - name: copy ll traefik certs
-      copy:
-        src: "{{ item }}"
-        dest: /mnt/traefik-certs
-#           decrypt: yes
-        mode: 0444
-      with_fileglob:
-        - "./certs/*.crt"
-
-    - name: copy ll traefik keys
-      copy:
-        src: "{{ item }}"
-        dest: /mnt/traefik-certs
-        mode: 0400
-      with_fileglob:
-        - "./certs/*.key"
 
     - name: create traefik-net networks
       docker_network:
@@ -101,14 +76,6 @@
         mounts:
           - source: /var/run/docker.sock
             target: /var/run/docker.sock
-            type: bind
-          # Mount that contains generated certs
-          - source: /mnt/traefik-certs/
-            target: /etc/certs/
-            type: bind
-          # Mount that contains dynamic configs
-          - source: /mnt/traefik-configs/certs-traefik.yml
-            target: /etc/traefik/dynamic/certs-traefik.yml
             type: bind
         placement:
           constraints:
