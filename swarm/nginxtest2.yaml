@@ -1,0 +1,52 @@
+---
+- name: test nginx content
+  hosts: swarm
+  become: yes
+  become_method: sudo
+  become_user: root
+
+  vars_files:
+    - ~/vault.yaml
+
+  vars:
+    - ansible_ssh_user: "{{ me }}"
+
+  tasks:
+    - name: volume dir
+      file:
+        path: /usr/share/www
+        state: directory
+        owner: root
+        group: root 
+        mode: 0755
+
+    - name: index.html
+      file: 
+        path: /usr/share/www2
+        state: directory
+        mode: '0755'
+    - copy:
+        src: ./files/index.html
+        dest: /usr/share/www2/index.html
+        mode: 0444
+
+    - name: create nginx service
+      docker_swarm_service:
+        name: web
+        image: nginx
+        networks:
+          - traefik-net
+        replicas: 2
+        mounts:
+          - source: /usr/share/www2
+            target: /usr/share/nginx/html
+            type: bind
+        labels:
+          traefik.docker.network: "traefik-net"
+          traefik.http.routers.nginx.entrypoints: "web"
+          traefik.http.routers.nginx.rule: "Host(`nginx.owens.dev`)"
+          traefik.http.routers.nginx.tls: "false"
+          traefik.http.services.nginx.loadbalancer.server.port: "80"
+      when: role is defined and role == "leader"
+        
+      
