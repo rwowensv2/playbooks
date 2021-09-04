@@ -1,22 +1,27 @@
 # Master initialize swarm
+```
 docker swarm init --advertise-addr 192.168.1.21
 docker swarm init --advertise-addr=192.168.1.21 --listen-addr 192.168.1.21:2377 > /tmp/worker_token.txt
->>
+
 
 docker swarm join --token SWMTKN-1-0vdphnzsp26o8mkbvt2ca3snzqpl7y5q8mms9hflvdycprfrwm-104ljk5loonziswobka9ohpxq 192.168.1.21:2377
 
->> 
-# node already part of a swarm
+```  
+# node already part of a swarm  
+```
 docker swarm leave
-# get token + command
+```  
+# get token + command  
+```
 docker swarm join-token worker
-
+```  
 #
 # Traefik Host Based 
 
-# create overlay network
+# create overlay network  
+```
 docker network create --driver overlay --attachable traefik-net
-
+```  
 #
 # Create traefik service
 ```
