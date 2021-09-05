@@ -12,9 +12,25 @@
 
   vars:
     - ansible_ssh_user: "{{ me }}"
+# https://github.com/helm/helm/releases
     - helm: https://get.helm.sh/helm-v3.6.3-linux-amd64.tar.gz
 
   tasks:
+    - name: disable SELINUX
+      selinux:
+        state: disabled
+
+# leftovers
+    - name: iptables bridged traff
+      sysctl:
+        name: "{{ item }}"
+        value: '1'
+        state: present
+      with_items:
+        - net.bridge.bridge-nf-call-iptables
+        - net.bridge.bridge-nf-call-ip6tables
+      tags: ['never', 'checkifnecessary']
+
     - name: K8s Repo 
       copy: 
         src: ./files/kubernetes.repo 
@@ -23,14 +39,15 @@
 
     - name: install k8s 
       yum:
+        name: ['kubelet', 'kubeadm', 'kubectl']
+        state: present
+
+    - name: enable kubelet
+      systemd:
         name: kubelet
-        state: present
-    - yum:
-        name: kubeadm
-        state: present
-    - yum:
-        name: kubeadm
-        state: present
+        enabled: yes
+        state: stopped
+        daemon_reload: yes
 
     - name: docker driver repl
       copy:
@@ -60,6 +77,7 @@
       tags: helm
     - command: /usr/local/bin/helm repo update
       tags: helm
-#    - name: helm rancher repo 
-#      command: /usr/bin/helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
-#      tags: helm
+
+    - name: helm rancher repo 
+      command: /usr/bin/helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+      tags: ['never', 'helm']
