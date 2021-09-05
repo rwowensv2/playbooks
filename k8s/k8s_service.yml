@@ -1,0 +1,51 @@
+---
+- name: k8s service
+  hosts: swarm
+  become: yes
+  become_method: sudo
+  become_user:  root
+
+  vars_files:
+    - ~/vault.yaml
+
+  vars:
+    - ansible_ssh_user: "{{ me }}"
+  
+  tasks:
+    - name: kublet
+      systemd:
+        name: kubelet.service
+        enabled: yes
+        state: started
+      when: role is defined and role == "manager"
+      tags: ['never', 'start']
+
+    - name: stop nodes
+      systemd:
+        name: kubelet.service
+        state: stopped
+      when: role is undefined
+      tags: ['never', 'stop']
+
+    - name: pause
+      pause:
+        seconds: 15
+      tags:
+        - start
+        - stop
+
+    - name: start nodes
+      systemd:
+        name: kubelet.service
+        enabled: yes
+        state: started
+      when: role is undefined
+      tags: ['never', 'start']
+
+    - name: stop manager
+      systemd:
+        name: kubelet.service
+        state: stopped
+      when: role is defined and role == "manager"
+      tags: ['never', 'stop']
+
