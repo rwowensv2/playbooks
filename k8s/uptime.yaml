@@ -1,0 +1,16 @@
+---
+- name: uptime
+  hosts: kube_cluster
+  gather_facts: no
+
+  vars_files:
+    - ~/vault.yaml
+
+  tasks:
+    - name: uptime
+      command: /usr/bin/uptime
+      register: uptime
+      when: role is defined and role == "manager"
+    - debug:
+        var: uptime.stdout_lines
+

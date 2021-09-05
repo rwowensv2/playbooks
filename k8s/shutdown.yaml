@@ -4,7 +4,6 @@
   become: yes
   become_method: sudo
   become_user:  root
-  serial: 1 
 
   vars_files:
     - ~/vault.yaml
@@ -21,11 +20,16 @@
       ignore_errors: true
       tags: shutdown
 
+    - name: pause
+      pause:
+        seconds: 15
+      tags: shutdown
+
     - name: stop manager
       systemd: 
         name: kubelet.service
         state: stopped
-      when: role is defined and role == "manager"
+      when: role is defined
       tags: shutdown
 
     - name: shutdown
