@@ -5,19 +5,12 @@ minikube start --driver=virtualbox
 
 ## Commands
 ```
-    kubectl get - list resources
-    kubectl describe - show detailed information about a resource
-    kubectl logs - print the logs from a container in a pod
-    kubectl exec - execute a command on a container in a pod
-```
-
-```
+kubectl get - list resources (all, pods, nodes, deployments...)
+kubectl describe - show detailed information about a resource
+kubectl logs - print the logs from a container in a pod
+kubectl exec - execute a command on a container in a pod
 kubectl version
-kubectl get all
-kubectl get pods
-kubectl get nodes
 kubectl create deployment
-kubectl get deployments
 ...
 kubectl proxy
   curl http://localhost:8001/
