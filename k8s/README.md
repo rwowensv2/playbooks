@@ -31,3 +31,23 @@ traefik      LoadBalancer   10.96.24.117   192.168.1.201   80:30293/TCP,443:3212
 
 $ kubectl apply -f dashboard.yaml
 ```
+
+# Reset  
+Should the need arise to start from scratch.  
+
+On all nodes:  
+```
+# Reset the node
+sudo kubeadm reset
+# Pull images ahead of time
+sudo kubeadm config images pull
+```
+On Leader:
+```
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16 --apiserver-advertise-address=<ipaddr>
+```
+ON Nodes:
+Use the join command, or if you forgot:  
+```
+sudo kubeadm token create --print-join-command
+```
