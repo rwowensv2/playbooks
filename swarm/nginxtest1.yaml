@@ -28,7 +28,7 @@
 
     - name: create nginx service
       docker_swarm_service:
-        name: webtest1
+        name: test
         image: nginx
         networks:
           - traefik-net
@@ -39,10 +39,10 @@
             type: bind
         labels:
           traefik.docker.network: "traefik-net"
-          traefik.http.routers.nginx.entrypoints: "web"
-          traefik.http.routers.nginx.rule: "Host(`test.owens.dev`)"
-          traefik.http.routers.nginx.tls: "false"
-          traefik.http.services.nginx.loadbalancer.server.port: "80"
+          traefik.http.routers.test.entrypoints: "web"
+          traefik.http.routers.test.rule: "Host(`test.owens.dev`)"
+          traefik.http.routers.test.tls: "false"
+          traefik.http.services.test.loadbalancer.server.port: "80"
       when: role is defined and role == "leader"
         
       

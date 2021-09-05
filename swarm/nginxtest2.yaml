@@ -28,7 +28,7 @@
 
     - name: create nginx service
       docker_swarm_service:
-        name: webtest2
+        name: nginx
         image: nginx
         networks:
           - traefik-net
@@ -38,6 +38,7 @@
             target: /usr/share/nginx/html
             type: bind
         labels:
+#          traefik.http.routers.nginx.service: "webtest2-service"
           traefik.docker.network: "traefik-net"
           traefik.http.routers.nginx.entrypoints: "web"
           traefik.http.routers.nginx.rule: "Host(`nginx.owens.dev`)"
