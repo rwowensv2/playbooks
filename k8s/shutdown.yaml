@@ -1,0 +1,36 @@
+---
+- name: k8s service
+  hosts:  kube_cluster
+  become: yes
+  become_method: sudo
+  become_user:  root
+  serial: 1 
+
+  vars_files:
+    - ~/vault.yaml
+
+  vars:
+    - ansible_ssh_user: "{{ me }}"
+  
+  tasks:
+    - name: stop nodes
+      systemd:
+        name: kubelet.service
+        state: stopped
+      when: role is undefined
+      ignore_errors: true
+      tags: shutdown
+
+    - name: stop manager
+      systemd: 
+        name: kubelet.service
+        state: stopped
+      when: role is defined and role == "manager"
+      tags: shutdown
+
+    - name: shutdown
+      command: /sbin/shutdown -h now
+      async: 1
+      poll: 0
+      tags:
+        - ['never','shutdown']
